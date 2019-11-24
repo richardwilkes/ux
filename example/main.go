@@ -1,0 +1,425 @@
+package main
+
+import (
+	"fmt"
+	"runtime"
+	"strings"
+	"unicode"
+
+	"github.com/richardwilkes/toolbox/cmdline"
+	"github.com/richardwilkes/toolbox/log/jot"
+	"github.com/richardwilkes/toolbox/log/jotrotate"
+	"github.com/richardwilkes/toolbox/xio/fs/embedded"
+	"github.com/richardwilkes/toolbox/xmath/geom"
+	"github.com/richardwilkes/ux"
+	"github.com/richardwilkes/ux/border"
+	"github.com/richardwilkes/ux/display"
+	"github.com/richardwilkes/ux/draw"
+	"github.com/richardwilkes/ux/layout"
+	"github.com/richardwilkes/ux/layout/align"
+	"github.com/richardwilkes/ux/menu"
+	"github.com/richardwilkes/ux/widget"
+	"github.com/richardwilkes/ux/widget/browser"
+	"github.com/richardwilkes/ux/widget/button"
+	"github.com/richardwilkes/ux/widget/checkbox"
+	"github.com/richardwilkes/ux/widget/checkbox/state"
+	"github.com/richardwilkes/ux/widget/label"
+	"github.com/richardwilkes/ux/widget/list"
+	"github.com/richardwilkes/ux/widget/popupmenu"
+	"github.com/richardwilkes/ux/widget/radiobutton"
+	"github.com/richardwilkes/ux/widget/scrollarea"
+	"github.com/richardwilkes/ux/widget/scrollarea/behavior"
+	"github.com/richardwilkes/ux/widget/selectable"
+	"github.com/richardwilkes/ux/widget/separator"
+	"github.com/richardwilkes/ux/widget/textfield"
+	"github.com/richardwilkes/ux/widget/tooltip"
+)
+
+var (
+	aboutWindow         *ux.Window
+	appleCursor         *draw.Cursor
+	homeImg             *draw.Image
+	classicAppleLogoImg *draw.Image
+	mountainsImg        *draw.Image
+)
+
+func main() {
+	runtime.LockOSThread()
+
+	cmdline.AppName = "Example"
+	cmdline.AppCmdName = "example"
+	cmdline.AppVersion = "0.1"
+	cmdline.CopyrightYears = "2019"
+	cmdline.CopyrightHolder = "Richard A. Wilkes"
+	cmdline.AppIdentifier = "com.trollworks.ux.example"
+
+	cl := cmdline.New(true)
+	jotrotate.ParseAndSetup(cl)
+
+	ux.WillFinishStartupCallback = finishStartup
+	ux.QuittingCallback = func() { jot.Info("Quitting") }
+	ux.Start() // Never returns
+}
+
+func finishStartup() {
+	fs := embedded.NewFileSystemFromEmbeddedZip("example/images")
+	var err error
+	homeImg, err = draw.NewImageFromBytes(fs.MustContentAsBytes("home.png"), 0.5)
+	jot.FatalIfErr(err)
+	classicAppleLogoImg, err = draw.NewImageFromBytes(fs.MustContentAsBytes("classic-apple-logo.png"), 0.5)
+	jot.FatalIfErr(err)
+	mountainsImg, err = draw.NewImageFromBytes(fs.MustContentAsBytes("mountains.jpg"), 0.5)
+	jot.FatalIfErr(err)
+	size := classicAppleLogoImg.LogicalGeomSize()
+	appleCursor = draw.NewCursor(classicAppleLogoImg, geom.Point{
+		X: size.Width / 2,
+		Y: size.Height / 2,
+	})
+
+	usable := display.Primary().Usable
+	w1 := createButtonsWindow("Demo #1", usable.Point)
+	frame1 := w1.FrameRect()
+	createButtonsWindow("Demo #2", geom.Point{X: frame1.X + frame1.Width, Y: frame1.Y})
+}
+
+func createButtonsWindow(title string, where geom.Point) *ux.Window {
+	wnd, err := ux.NewWindow(title, geom.Rect{}, ux.StdWindowMask)
+	jot.FatalIfErr(err)
+	if bar, global, first := menu.BarForWindow(wnd, nil); !global || first {
+		bar.InsertStdMenus(createAboutWindow, createPreferencesWindow, nil)
+	}
+
+	content := wnd.Content()
+	content.SetBorder(border.NewEmpty(geom.NewUniformInsets(10)))
+	lay := layout.NewFlex(content)
+	lay.VSpacing = 10
+
+	buttonsPanel := createButtonsPanel()
+	flexData := layout.NewFlexData()
+	flexData.HGrab = true
+	buttonsPanel.SetLayoutData(flexData)
+	content.AddChild(buttonsPanel)
+
+	addSeparator(content)
+
+	checkBoxPanel := createCheckBoxPanel()
+	checkBoxPanel.SetLayoutData(flexData.Clone())
+	content.AddChild(checkBoxPanel)
+
+	addSeparator(content)
+
+	toggleButtonsPanel := createToggleButtonsPanel()
+	toggleButtonsPanel.SetLayoutData(flexData.Clone())
+	content.AddChild(toggleButtonsPanel)
+
+	addSeparator(content)
+
+	radioButtonsPanel := createRadioButtonsPanel()
+	radioButtonsPanel.SetLayoutData(flexData.Clone())
+	content.AddChild(radioButtonsPanel)
+
+	addSeparator(content)
+
+	popupMenusPanel := createPopupMenusPanel()
+	popupMenusPanel.SetLayoutData(flexData.Clone())
+	content.AddChild(popupMenusPanel)
+
+	addSeparator(content)
+
+	wrapper := ux.NewPanel()
+	lay = layout.NewFlex(wrapper)
+	lay.Columns = 2
+	lay.EqualColumns = true
+	lay.HSpacing = 10
+	flexData = flexData.Clone()
+	flexData.HAlign = align.Fill
+	wrapper.SetLayoutData(flexData)
+	textFieldsPanel := createTextFieldsPanel()
+	textFieldsPanel.SetLayoutData(flexData.Clone())
+	wrapper.AddChild(textFieldsPanel)
+	wrapper.AddChild(createListPanel())
+	content.AddChild(wrapper)
+
+	addSeparator(content)
+
+	if title == "Demo #1" {
+		if wv, err := browser.New(wnd); err == nil {
+			flexData = layout.NewFlexData()
+			flexData.HAlign = align.Fill
+			flexData.VAlign = align.Fill
+			flexData.HGrab = true
+			flexData.VGrab = true
+			flexData.SizeHint.Width = 1024
+			flexData.SizeHint.Height = 768
+			wv.SetLayoutData(flexData)
+			wv.LoadURL("https://gurpscharactersheet.com")
+			content.AddChild(wv.AsPanel())
+		}
+	} else {
+		imgPanel := label.NewWithImage(mountainsImg)
+		imgPanel.SetFocusable(true)
+		_, prefSize, _ := imgPanel.Sizes(geom.Size{})
+		imgPanel.SetFrameRect(geom.Rect{Size: prefSize})
+		imgPanel.UpdateCursorCallback = func(where geom.Point) *draw.Cursor {
+			return appleCursor
+		}
+		imgPanel.UpdateTooltipCallback = func(where geom.Point, avoid geom.Rect) geom.Rect {
+			imgPanel.Tooltip = tooltip.NewWithText(where.String())
+			avoid.X = where.X - 16
+			avoid.Y = where.Y - 16
+			avoid.Point = imgPanel.ToRoot(avoid.Point)
+			avoid.Width = 32
+			avoid.Height = 32
+			return avoid
+		}
+		scrollArea := scrollarea.New(imgPanel.AsPanel(), behavior.Unmodified)
+		flexData = layout.NewFlexData()
+		flexData.HAlign = align.Fill
+		flexData.VAlign = align.Fill
+		flexData.HGrab = true
+		flexData.VGrab = true
+		scrollArea.SetLayoutData(flexData)
+		content.AddChild(scrollArea.AsPanel())
+	}
+
+	wnd.SetFocus(textFieldsPanel.Children()[0])
+	wnd.Pack()
+	rect := wnd.FrameRect()
+	rect.Point = where
+	wnd.SetFrameRect(rect)
+	wnd.ToFront()
+	return wnd
+}
+
+func createListPanel() *ux.Panel {
+	lst := list.New(&widget.LabelCellFactory{})
+	lst.Append(
+		"One",
+		"Two",
+		"Three with some long text to make it interesting",
+		"Four",
+		"Five",
+	)
+	lst.NewSelectionCallback = func() {
+		var buffer strings.Builder
+		fmt.Fprintf(&buffer, "Selection changed in %v. Now:", lst)
+		index := -1
+		first := true
+		for {
+			index = lst.Selection.NextSet(index + 1)
+			if index == -1 {
+				break
+			}
+			if first {
+				first = false
+			} else {
+				buffer.WriteString(",")
+			}
+			fmt.Fprintf(&buffer, " %d", index)
+		}
+		jot.Info(buffer.String())
+	}
+	lst.DoubleClickCallback = func() {
+		jot.Infof("Double-clicked on %v", lst)
+	}
+	_, prefSize, _ := lst.Sizes(geom.Size{})
+	lst.SetFrameRect(geom.Rect{Size: prefSize})
+	scroller := scrollarea.New(lst.AsPanel(), behavior.Fill)
+	flexData := layout.NewFlexData()
+	flexData.HAlign = align.Fill
+	flexData.VAlign = align.Fill
+	flexData.HGrab = true
+	flexData.VGrab = true
+	scroller.SetLayoutData(flexData)
+	return scroller.AsPanel()
+}
+
+func addSeparator(parent *ux.Panel) {
+	sep := separator.NewHorizontal()
+	flexData := layout.NewFlexData()
+	flexData.HAlign = align.Fill
+	sep.SetLayoutData(flexData)
+	parent.AddChild(sep.AsPanel())
+}
+
+func createButtonsPanel() *ux.Panel {
+	panel := ux.NewPanel()
+	layout.NewFlow(panel, 5, 5)
+	btn := createButton("Press Me", panel)
+	btn.SetLayoutData(align.Middle)
+	btn = createButton("Disabled", panel)
+	btn.SetLayoutData(align.Middle)
+	btn.SetEnabled(false)
+	btn = createImageButton(homeImg, panel)
+	btn.SetLayoutData(align.Middle)
+	btn = createImageButton(homeImg, panel)
+	btn.SetLayoutData(align.Middle)
+	btn.SetEnabled(false)
+	btn = createImageButton(classicAppleLogoImg, panel)
+	btn.SetLayoutData(align.Middle)
+	btn = createImageButton(classicAppleLogoImg, panel)
+	btn.SetLayoutData(align.Middle)
+	btn.SetEnabled(false)
+	return panel
+}
+
+func createButton(title string, panel *ux.Panel) *button.Button {
+	btn := button.NewWithText(title)
+	btn.ClickCallback = func() { jot.Infof("%v was clicked.", btn) }
+	btn.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", btn))
+	panel.AddChild(btn.AsPanel())
+	return btn
+}
+
+func createImageButton(img *draw.Image, panel *ux.Panel) *button.Button {
+	btn := button.NewWithImage(img)
+	btn.ClickCallback = func() { jot.Infof("%v was clicked.", btn) }
+	btn.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", btn))
+	panel.AddChild(btn.AsPanel())
+	return btn
+}
+
+func createCheckBoxPanel() *ux.Panel {
+	panel := ux.NewPanel()
+	layout.NewFlex(panel)
+	createCheckBox("Press Me", panel)
+	createCheckBox("Initially Mixed", panel).State = state.Mixed
+	createCheckBox("Disabled", panel).SetEnabled(false)
+	check := createCheckBox("Disabled w/Check", panel)
+	check.SetEnabled(false)
+	check.State = state.Checked
+	return panel
+}
+
+func createCheckBox(title string, panel *ux.Panel) *checkbox.CheckBox {
+	check := checkbox.NewWithText(title)
+	check.ClickCallback = func() { jot.Infof("%v was clicked.", check) }
+	check.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", check))
+	panel.AddChild(check.AsPanel())
+	return check
+}
+
+func createToggleButtonsPanel() *ux.Panel {
+	panel := ux.NewPanel()
+	layout.NewFlow(panel, 5, 5)
+	group := selectable.NewGroup()
+	first := createToggleButton(homeImg, panel, group)
+	createToggleButton(classicAppleLogoImg, panel, group)
+	group.Select(first.AsSelectable())
+	return panel
+}
+
+func createToggleButton(img *draw.Image, panel *ux.Panel, group *selectable.Group) *button.Button {
+	btn := createImageButton(img, panel)
+	btn.Sticky = true
+	btn.SetLayoutData(align.Middle)
+	group.Add(btn.AsSelectable())
+	return btn
+}
+
+func createRadioButtonsPanel() *ux.Panel {
+	panel := ux.NewPanel()
+	layout.NewFlex(panel)
+	group := selectable.NewGroup()
+	first := createRadioButton("First", panel, group)
+	createRadioButton("Second", panel, group)
+	createRadioButton("Third (disabled)", panel, group).SetEnabled(false)
+	createRadioButton("Fourth", panel, group)
+	group.Select(first.AsSelectable())
+	return panel
+}
+
+func createRadioButton(title string, panel *ux.Panel, group *selectable.Group) *radiobutton.RadioButton {
+	rb := radiobutton.NewWithText(title)
+	rb.ClickCallback = func() { jot.Infof("%v was clicked.", rb) }
+	rb.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", rb))
+	panel.AddChild(rb.AsPanel())
+	group.Add(rb.AsSelectable())
+	return rb
+}
+
+func createPopupMenusPanel() *ux.Panel {
+	panel := ux.NewPanel()
+	layout.NewFlex(panel)
+	createPopupMenu(panel, 1, "One", "Two", "Three", "", "Four", "Five", "Six")
+	createPopupMenu(panel, 2, "Red", "Blue", "Green").SetEnabled(false)
+	return panel
+}
+
+func createPopupMenu(panel *ux.Panel, selection int, titles ...string) *popupmenu.PopupMenu {
+	p := popupmenu.New()
+	p.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", p))
+	for _, title := range titles {
+		if title == "" {
+			p.AddSeparator()
+		} else {
+			p.AddItem(title)
+		}
+	}
+	p.SelectIndex(selection)
+	p.SelectionCallback = func() { jot.Infof("The '%v' item was selected from the PopupMenu.", p.Selected()) }
+	panel.AddChild(p.AsPanel())
+	return p
+}
+
+func createTextFieldsPanel() *ux.Panel {
+	panel := ux.NewPanel()
+	layout.NewFlex(panel)
+	field := createTextField("First Text Field", panel)
+	createTextField("Second Text Field (disabled)", panel).SetEnabled(false)
+	createTextField("", panel).Watermark = "Watermarked"
+	field = createTextField("", panel)
+	field.Watermark = "Enter only numbers"
+	field.ValidateCallback = func() bool {
+		for _, r := range field.Text() {
+			if !unicode.IsDigit(r) {
+				return false
+			}
+		}
+		return true
+	}
+	return panel
+}
+
+func createTextField(text string, panel *ux.Panel) *textfield.TextField {
+	field := textfield.New()
+	field.SetText(text)
+	flexData := layout.NewFlexData()
+	flexData.HAlign = align.Fill
+	flexData.HGrab = true
+	field.SetLayoutData(flexData)
+	field.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", field))
+	panel.AddChild(field.AsPanel())
+	return field
+}
+
+func createAboutWindow() {
+	if aboutWindow == nil {
+		var err error
+		aboutWindow, err = ux.NewWindow("About "+cmdline.AppName, geom.Rect{}, ux.TitledWindowMask|ux.ClosableWindowMask)
+		if err != nil {
+			jot.Error(err)
+			return
+		}
+		aboutWindow.WillCloseCallback = func() { aboutWindow = nil }
+		content := aboutWindow.Content()
+		content.SetBorder(border.NewEmpty(geom.NewUniformInsets(10)))
+		layout.NewFlex(content)
+		title := label.NewWithText(cmdline.AppName)
+		title.Font = draw.EmphasizedSystemFont
+		flexData := layout.NewFlexData()
+		flexData.HAlign = align.Middle
+		flexData.HGrab = true
+		title.SetLayoutData(flexData)
+		content.AddChild(title.AsPanel())
+		desc := label.NewWithText("Simple app to demonstrate the\ncapabilities of the ui framework.")
+		desc.SetLayoutData(flexData.Clone())
+		content.AddChild(desc.AsPanel())
+		aboutWindow.Pack()
+	}
+	aboutWindow.ToFront()
+}
+
+func createPreferencesWindow() {
+	jot.Info("Preferences...")
+}

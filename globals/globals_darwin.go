@@ -1,0 +1,4 @@
+package globals
+
+func osInitialize() {
+}
