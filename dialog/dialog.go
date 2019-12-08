@@ -35,6 +35,7 @@ func NewDialog(img *draw.Image, msgPanel, buttonPanel *ux.Panel) *ux.Window {
 		return nil
 	}
 	content := wnd.Content()
+	content.SetBorder(border.NewEmpty(geom.NewUniformInsets(16)))
 	columns := 1
 	if img != nil {
 		columns++
@@ -49,11 +50,10 @@ func NewDialog(img *draw.Image, msgPanel, buttonPanel *ux.Panel) *ux.Window {
 	} else {
 		msgPanel.SetBorder(border.NewEmpty(geom.Insets{Bottom: 16}))
 	}
-	layout.NewFlexData().HGrab(true).HAlign(align.Fill).Apply(msgPanel)
+	layout.NewFlexData().HGrab(true).VGrab(true).HAlign(align.Fill).VAlign(align.Start).Apply(msgPanel)
 	content.AddChild(msgPanel)
 	layout.NewFlexData().HAlign(align.End).HSpan(columns).Apply(buttonPanel)
 	content.AddChild(buttonPanel)
-	content.SetBorder(border.NewEmpty(geom.NewUniformInsets(16)))
 	wnd.Pack()
 	wndFrame := wnd.FrameRect()
 	frame.Y += (frame.Height - wndFrame.Height) / 3
@@ -141,7 +141,7 @@ func QuestionDialog(primary, detail string) int {
 // was pressed and ids.ModalResponseCancel if the Cancel button was pressed.
 func QuestionDialogWithPanel(msgPanel *ux.Panel) int {
 	buttonPanel := ux.NewPanel()
-	layout.NewFlex().Columns(2).EqualColumns(true).Apply(buttonPanel)
+	layout.NewFlex().Columns(2).EqualColumns(true).HSpacing(layout.DefaultHSpacing * 2).Apply(buttonPanel)
 	cancelButton := button.NewWithText(i18n.Text("Cancel"))
 	buttonPanel.AddChild(cancelButton.AsPanel())
 	okButton := button.NewWithText(i18n.Text("OK"))
