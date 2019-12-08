@@ -25,7 +25,7 @@ func NewBase() *ux.Panel {
 // NewWithText creates a standard text tooltip panel.
 func NewWithText(text string) *ux.Panel {
 	tip := NewBase()
-	layout.NewFlex(tip)
+	layout.NewFlex().Apply(tip)
 	for _, str := range strings.Split(text, "\n") {
 		l := label.NewWithText(str)
 		l.Font = draw.SystemFont
@@ -39,7 +39,7 @@ func NewWithText(text string) *ux.Panel {
 // font.
 func NewWithSecondaryText(primary, secondary string) *ux.Panel {
 	tip := NewBase()
-	layout.NewFlex(tip)
+	layout.NewFlex().Apply(tip)
 	for _, str := range strings.Split(primary, "\n") {
 		l := label.NewWithText(str)
 		l.Font = draw.SystemFont

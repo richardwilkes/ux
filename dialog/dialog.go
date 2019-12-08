@@ -29,32 +29,29 @@ func NewDialog(img *draw.Image, msgPanel, buttonPanel *ux.Panel) *ux.Window {
 	} else {
 		frame = display.Primary().Usable
 	}
-	wnd, err := ux.NewWindow("", frame, ux.TitledWindowMask)
+	wnd, err := ux.NewWindow("", frame, ux.TitledWindowMask|ux.ResizableWindowMask)
 	if err != nil {
 		jot.Error(errs.NewWithCause("unable to create dialog", err))
 		return nil
 	}
 	content := wnd.Content()
-	flex := layout.NewFlex(content)
+	columns := 1
 	if img != nil {
-		flex.Columns = 2
+		columns++
 		icon := label.NewWithImage(img)
 		icon.SetBorder(border.NewEmpty(geom.Insets{Bottom: 16, Right: 8}))
-		flexData := layout.NewFlexData()
-		flexData.VAlign = align.Start
-		icon.SetLayoutData(flexData)
+		layout.NewFlexData().VAlign(align.Start).Apply(icon)
 		content.AddChild(icon.AsPanel())
 	}
+	layout.NewFlex().Columns(columns).Apply(content)
 	if b := msgPanel.Border(); b != nil {
 		msgPanel.SetBorder(border.NewCompound(border.NewEmpty(geom.Insets{Bottom: 16}), b))
 	} else {
 		msgPanel.SetBorder(border.NewEmpty(geom.Insets{Bottom: 16}))
 	}
+	layout.NewFlexData().HGrab(true).HAlign(align.Fill).Apply(msgPanel)
 	content.AddChild(msgPanel)
-	flexData := layout.NewFlexData()
-	flexData.HAlign = align.End
-	flexData.HSpan = flex.Columns
-	buttonPanel.SetLayoutData(flexData)
+	layout.NewFlexData().HAlign(align.End).HSpan(columns).Apply(buttonPanel)
 	content.AddChild(buttonPanel)
 	content.SetBorder(border.NewEmpty(geom.NewUniformInsets(16)))
 	wnd.Pack()
@@ -72,12 +69,10 @@ func NewDialog(img *draw.Image, msgPanel, buttonPanel *ux.Panel) *ux.Window {
 // messages. Embedded line feeds are OK.
 func NewMessagePanel(primary, detail string) *ux.Panel {
 	panel := ux.NewPanel()
-	layout.NewFlex(panel)
+	layout.NewFlex().Apply(panel)
 	breakTextIntoLabels(panel, primary, draw.EmphasizedSystemFont)
 	breakTextIntoLabels(panel, detail, draw.SystemFont)
-	flexData := layout.NewFlexData()
-	flexData.MinSize.Width = 200
-	panel.SetLayoutData(flexData)
+	layout.NewFlexData().MinSize(geom.Size{Width: 200}).Apply(panel)
 	return panel
 }
 
@@ -146,21 +141,13 @@ func QuestionDialog(primary, detail string) int {
 // was pressed and ids.ModalResponseCancel if the Cancel button was pressed.
 func QuestionDialogWithPanel(msgPanel *ux.Panel) int {
 	buttonPanel := ux.NewPanel()
-	flex := layout.NewFlex(buttonPanel)
-	flex.Columns = 2
+	layout.NewFlex().Columns(2).EqualColumns(true).Apply(buttonPanel)
 	cancelButton := button.NewWithText(i18n.Text("Cancel"))
 	buttonPanel.AddChild(cancelButton.AsPanel())
 	okButton := button.NewWithText(i18n.Text("OK"))
 	buttonPanel.AddChild(okButton.AsPanel())
-	var size geom.Size
 	for _, p := range buttonPanel.Children() {
-		_, pref, _ := p.Sizes(geom.Size{})
-		size.Max(pref)
-	}
-	for _, p := range buttonPanel.Children() {
-		flexData := layout.NewFlexData()
-		flexData.SizeHint = size
-		p.SetLayoutData(flexData)
+		layout.NewFlexData().HAlign(align.Fill).Apply(p)
 	}
 	if dialog := NewDialog(icons.Question(), msgPanel, buttonPanel); dialog != nil {
 		cancelButton.ClickCallback = func() {

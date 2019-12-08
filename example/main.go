@@ -91,51 +91,45 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 
 	content := wnd.Content()
 	content.SetBorder(border.NewEmpty(geom.NewUniformInsets(10)))
-	lay := layout.NewFlex(content)
-	lay.VSpacing = 10
+	layout.NewFlex().VSpacing(10).Apply(content)
 
 	buttonsPanel := createButtonsPanel()
-	flexData := layout.NewFlexData()
-	flexData.HGrab = true
-	buttonsPanel.SetLayoutData(flexData)
+	flexData := layout.NewFlexData().HGrab(true)
+	flexData.Apply(buttonsPanel)
 	content.AddChild(buttonsPanel)
 
 	addSeparator(content)
 
 	checkBoxPanel := createCheckBoxPanel()
-	checkBoxPanel.SetLayoutData(flexData.Clone())
+	flexData.Apply(checkBoxPanel)
 	content.AddChild(checkBoxPanel)
 
 	addSeparator(content)
 
 	toggleButtonsPanel := createToggleButtonsPanel()
-	toggleButtonsPanel.SetLayoutData(flexData.Clone())
+	flexData.Apply(toggleButtonsPanel)
 	content.AddChild(toggleButtonsPanel)
 
 	addSeparator(content)
 
 	radioButtonsPanel := createRadioButtonsPanel()
-	radioButtonsPanel.SetLayoutData(flexData.Clone())
+	flexData.Apply(radioButtonsPanel)
 	content.AddChild(radioButtonsPanel)
 
 	addSeparator(content)
 
 	popupMenusPanel := createPopupMenusPanel()
-	popupMenusPanel.SetLayoutData(flexData.Clone())
+	flexData.Apply(popupMenusPanel)
 	content.AddChild(popupMenusPanel)
 
 	addSeparator(content)
 
 	wrapper := ux.NewPanel()
-	lay = layout.NewFlex(wrapper)
-	lay.Columns = 2
-	lay.EqualColumns = true
-	lay.HSpacing = 10
-	flexData = flexData.Clone()
-	flexData.HAlign = align.Fill
+	layout.NewFlex().Columns(2).EqualColumns(true).HSpacing(10).Apply(wrapper)
+	flexData.HAlign(align.Fill).Apply(wrapper)
 	wrapper.SetLayoutData(flexData)
 	textFieldsPanel := createTextFieldsPanel()
-	textFieldsPanel.SetLayoutData(flexData.Clone())
+	flexData.Apply(textFieldsPanel)
 	wrapper.AddChild(textFieldsPanel)
 	wrapper.AddChild(createListPanel())
 	content.AddChild(wrapper)
@@ -144,14 +138,7 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 
 	if title == "Demo #1" {
 		if wv, err := browser.New(wnd); err == nil {
-			flexData = layout.NewFlexData()
-			flexData.HAlign = align.Fill
-			flexData.VAlign = align.Fill
-			flexData.HGrab = true
-			flexData.VGrab = true
-			flexData.SizeHint.Width = 1024
-			flexData.SizeHint.Height = 768
-			wv.SetLayoutData(flexData)
+			layout.NewFlexData().HAlign(align.Fill).VAlign(align.Fill).HGrab(true).VGrab(true).SizeHint(geom.Size{Width: 1024, Height: 768}).Apply(wv)
 			wv.LoadURL("https://gurpscharactersheet.com")
 			content.AddChild(wv.AsPanel())
 		}
@@ -173,12 +160,7 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 			return avoid
 		}
 		scrollArea := scrollarea.New(imgPanel.AsPanel(), behavior.Unmodified)
-		flexData = layout.NewFlexData()
-		flexData.HAlign = align.Fill
-		flexData.VAlign = align.Fill
-		flexData.HGrab = true
-		flexData.VGrab = true
-		scrollArea.SetLayoutData(flexData)
+		layout.NewFlexData().HAlign(align.Fill).VAlign(align.Fill).HGrab(true).VGrab(true).Apply(scrollArea)
 		content.AddChild(scrollArea.AsPanel())
 	}
 
@@ -225,26 +207,19 @@ func createListPanel() *ux.Panel {
 	_, prefSize, _ := lst.Sizes(geom.Size{})
 	lst.SetFrameRect(geom.Rect{Size: prefSize})
 	scroller := scrollarea.New(lst.AsPanel(), behavior.Fill)
-	flexData := layout.NewFlexData()
-	flexData.HAlign = align.Fill
-	flexData.VAlign = align.Fill
-	flexData.HGrab = true
-	flexData.VGrab = true
-	scroller.SetLayoutData(flexData)
+	layout.NewFlexData().HAlign(align.Fill).VAlign(align.Fill).HGrab(true).VGrab(true).Apply(scroller)
 	return scroller.AsPanel()
 }
 
 func addSeparator(parent *ux.Panel) {
 	sep := separator.NewHorizontal()
-	flexData := layout.NewFlexData()
-	flexData.HAlign = align.Fill
-	sep.SetLayoutData(flexData)
+	layout.NewFlexData().HAlign(align.Fill).Apply(sep)
 	parent.AddChild(sep.AsPanel())
 }
 
 func createButtonsPanel() *ux.Panel {
 	panel := ux.NewPanel()
-	layout.NewFlow(panel, 5, 5)
+	layout.NewFlow().HSpacing(5).VSpacing(5).Apply(panel)
 	btn := createButton("Press Me", panel)
 	btn.SetLayoutData(align.Middle)
 	btn = createButton("Disabled", panel)
@@ -281,7 +256,7 @@ func createImageButton(img *draw.Image, panel *ux.Panel) *button.Button {
 
 func createCheckBoxPanel() *ux.Panel {
 	panel := ux.NewPanel()
-	layout.NewFlex(panel)
+	layout.NewFlex().Apply(panel)
 	createCheckBox("Press Me", panel)
 	createCheckBox("Initially Mixed", panel).State = state.Mixed
 	createCheckBox("Disabled", panel).SetEnabled(false)
@@ -301,7 +276,7 @@ func createCheckBox(title string, panel *ux.Panel) *checkbox.CheckBox {
 
 func createToggleButtonsPanel() *ux.Panel {
 	panel := ux.NewPanel()
-	layout.NewFlow(panel, 5, 5)
+	layout.NewFlow().HSpacing(5).VSpacing(5).Apply(panel)
 	group := selectable.NewGroup()
 	first := createToggleButton(homeImg, panel, group)
 	createToggleButton(classicAppleLogoImg, panel, group)
@@ -319,7 +294,7 @@ func createToggleButton(img *draw.Image, panel *ux.Panel, group *selectable.Grou
 
 func createRadioButtonsPanel() *ux.Panel {
 	panel := ux.NewPanel()
-	layout.NewFlex(panel)
+	layout.NewFlex().Apply(panel)
 	group := selectable.NewGroup()
 	first := createRadioButton("First", panel, group)
 	createRadioButton("Second", panel, group)
@@ -340,7 +315,7 @@ func createRadioButton(title string, panel *ux.Panel, group *selectable.Group) *
 
 func createPopupMenusPanel() *ux.Panel {
 	panel := ux.NewPanel()
-	layout.NewFlex(panel)
+	layout.NewFlex().Apply(panel)
 	createPopupMenu(panel, 1, "One", "Two", "Three", "", "Four", "Five", "Six")
 	createPopupMenu(panel, 2, "Red", "Blue", "Green").SetEnabled(false)
 	return panel
@@ -364,7 +339,7 @@ func createPopupMenu(panel *ux.Panel, selection int, titles ...string) *popupmen
 
 func createTextFieldsPanel() *ux.Panel {
 	panel := ux.NewPanel()
-	layout.NewFlex(panel)
+	layout.NewFlex().Apply(panel)
 	field := createTextField("First Text Field", panel)
 	createTextField("Second Text Field (disabled)", panel).SetEnabled(false)
 	createTextField("", panel).Watermark = "Watermarked"
@@ -384,10 +359,7 @@ func createTextFieldsPanel() *ux.Panel {
 func createTextField(text string, panel *ux.Panel) *textfield.TextField {
 	field := textfield.New()
 	field.SetText(text)
-	flexData := layout.NewFlexData()
-	flexData.HAlign = align.Fill
-	flexData.HGrab = true
-	field.SetLayoutData(flexData)
+	layout.NewFlexData().HAlign(align.Fill).HGrab(true).Apply(field)
 	field.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", field))
 	panel.AddChild(field.AsPanel())
 	return field
@@ -404,16 +376,14 @@ func createAboutWindow() {
 		aboutWindow.WillCloseCallback = func() { aboutWindow = nil }
 		content := aboutWindow.Content()
 		content.SetBorder(border.NewEmpty(geom.NewUniformInsets(10)))
-		layout.NewFlex(content)
+		layout.NewFlex().Apply(content)
 		title := label.NewWithText(cmdline.AppName)
 		title.Font = draw.EmphasizedSystemFont
-		flexData := layout.NewFlexData()
-		flexData.HAlign = align.Middle
-		flexData.HGrab = true
-		title.SetLayoutData(flexData)
+		flexData := layout.NewFlexData().HAlign(align.Fill).HGrab(true)
+		flexData.Apply(title)
 		content.AddChild(title.AsPanel())
 		desc := label.NewWithText("Simple app to demonstrate the\ncapabilities of the ui framework.")
-		desc.SetLayoutData(flexData.Clone())
+		flexData.Apply(desc)
 		content.AddChild(desc.AsPanel())
 		aboutWindow.Pack()
 	}

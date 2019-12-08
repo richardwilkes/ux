@@ -1,9 +1,10 @@
 package layout
 
 import (
+	"math"
+
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux/border"
-	"math"
 )
 
 const (
@@ -14,6 +15,10 @@ const (
 	// laying out panels. It is perfectly acceptable to use a larger value
 	// than this, however, if that makes sense for your specific target.
 	DefaultMaxSize = 10000
+	// DefaultHSpacing is used for the default spacing between columns.
+	DefaultHSpacing = 4
+	// DefaultVSpacing is used for the default spacing between rows.
+	DefaultVSpacing = 2
 )
 
 // Sizer returns minimum, preferred, and maximum sizes. The hint will contain

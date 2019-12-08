@@ -93,6 +93,9 @@ func (t *TextField) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 		minWidth = 10
 	}
 	pref = t.Font.Extents(text)
+	if pref.Width < minWidth {
+		pref.Width = minWidth
+	}
 	if b := t.Border(); b != nil {
 		insets := b.Insets()
 		pref.AddInsets(insets)

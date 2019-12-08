@@ -19,7 +19,7 @@ func newRootPanel(wnd *Window) *rootPanel {
 	p.SetLayout(&rootLayout{root: p})
 	p.window = wnd
 	content := NewPanel()
-	layout.NewFlow(content, 4, 2)
+	layout.NewFlow().Apply(content)
 	p.setContent(content)
 	return p
 }

@@ -1,41 +1,61 @@
 package layout
 
 import (
+	"math"
+
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux/layout/align"
-	"math"
 )
 
-type flow struct {
+// Flow holds the flow layout information.
+type Flow struct {
 	target   Layoutable
 	hSpacing float64
 	vSpacing float64
 }
 
-// NewFlow creates and assigns a layout on the specified target. This layout
-// arranges the children of its target left-to-right, then top-to-bottom at
-// their preferred sizes, if possible. hSpacing defines the spacing between
-// columns. vSpacing defines the spacing between rows.
-//
-// Each child may have an Alignment set for its LayoutData to control vertical
-// positioning within the row. If not present, Start is assumed.
-func NewFlow(target Layoutable, hSpacing, vSpacing float64) {
-	target.SetLayout(&flow{
-		target:   target,
-		hSpacing: hSpacing,
-		vSpacing: vSpacing,
-	})
+// NewFlow creates a new Flow layout. This layout arranges the children of its
+// target left-to-right, then top-to-bottom at their preferred sizes, if
+// possible. Each child of the target may have an Alignment set for its
+// LayoutData to control vertical positioning within the row. If not present,
+// Start is assumed.
+func NewFlow() *Flow {
+	return &Flow{
+		hSpacing: DefaultHSpacing,
+		vSpacing: DefaultVSpacing,
+	}
 }
 
-func (l *flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
-	if l.hSpacing < 0 {
-		l.hSpacing = 0
+// HSpacing sets the spacing between columns. Defaults to DefaultHSpacing.
+func (f *Flow) HSpacing(hSpacing float64) *Flow {
+	f.hSpacing = hSpacing
+	return f
+}
+
+// VSpacing sets the spacing between rows. Defaults to DefaultVSpacing.
+func (f *Flow) VSpacing(vSpacing float64) *Flow {
+	f.vSpacing = vSpacing
+	return f
+}
+
+// Apply the layout to the target. A copy is made of this layout and that is
+// applied to the target, so this layout may be applied to other targets.
+func (f *Flow) Apply(target Layoutable) {
+	flow := *f
+	flow.target = target
+	target.SetLayout(&flow)
+}
+
+// Sizes implements Layout.
+func (f *Flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
+	if f.hSpacing < 0 {
+		f.hSpacing = 0
 	}
-	if l.vSpacing < 0 {
-		l.vSpacing = 0
+	if f.vSpacing < 0 {
+		f.vSpacing = 0
 	}
 	var insets geom.Insets
-	b := l.target.Border()
+	b := f.target.Border()
 	if b != nil {
 		insets = b.Insets()
 	}
@@ -52,7 +72,7 @@ func (l *flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 	availHeight := hint.Height - (insets.Top + insets.Bottom)
 	var maxHeight float64
 	var largestChildMin geom.Size
-	for _, child := range l.target.ChildrenForLayout() {
+	for _, child := range f.target.ChildrenForLayout() {
 		min, pref, _ := child.Sizes(geom.Size{})
 		if largestChildMin.Width < min.Width {
 			largestChildMin.Width = min.Width
@@ -68,9 +88,9 @@ func (l *flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 				pref.Width = min.Width
 			default:
 				pt.X = insets.Left
-				pt.Y += maxHeight + l.vSpacing
+				pt.Y += maxHeight + f.vSpacing
 				availWidth = width
-				availHeight -= maxHeight + l.vSpacing
+				availHeight -= maxHeight + f.vSpacing
 				maxHeight = 0
 				if pref.Width > availWidth {
 					if min.Width <= availWidth {
@@ -102,15 +122,15 @@ func (l *flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 		if maxHeight < pref.Height {
 			maxHeight = pref.Height
 		}
-		availWidth -= pref.Width + l.hSpacing
+		availWidth -= pref.Width + f.hSpacing
 		if availWidth <= 0 {
 			pt.X = insets.Left
-			pt.Y += maxHeight + l.vSpacing
+			pt.Y += maxHeight + f.vSpacing
 			availWidth = width
-			availHeight -= maxHeight + l.vSpacing
+			availHeight -= maxHeight + f.vSpacing
 			maxHeight = 0
 		} else {
-			pt.X += pref.Width + l.hSpacing
+			pt.X += pref.Width + f.hSpacing
 		}
 	}
 	result.Width += insets.Right
@@ -120,19 +140,20 @@ func (l *flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 	return largestChildMin, result, MaxSize(result)
 }
 
-func (l *flow) Layout() {
+// Layout implements Layout.
+func (f *Flow) Layout() {
 	var insets geom.Insets
-	b := l.target.Border()
+	b := f.target.Border()
 	if b != nil {
 		insets = b.Insets()
 	}
-	size := l.target.FrameRect().Size
+	size := f.target.FrameRect().Size
 	width := size.Width - (insets.Left + insets.Right)
 	pt := geom.Point{X: insets.Left, Y: insets.Top}
 	availWidth := width
 	availHeight := size.Height - (insets.Top + insets.Bottom)
 	var maxHeight float64
-	children := l.target.ChildrenForLayout()
+	children := f.target.ChildrenForLayout()
 	rects := make([]geom.Rect, len(children))
 	start := 0
 	for i, child := range children {
@@ -145,11 +166,11 @@ func (l *flow) Layout() {
 				pref.Width = min.Width
 			default:
 				pt.X = insets.Left
-				pt.Y += maxHeight + l.vSpacing
+				pt.Y += maxHeight + f.vSpacing
 				availWidth = width
-				availHeight -= maxHeight + l.vSpacing
+				availHeight -= maxHeight + f.vSpacing
 				if i > start {
-					l.applyRects(children[start:i], rects[start:i], maxHeight)
+					f.applyRects(children[start:i], rects[start:i], maxHeight)
 					start = i
 				}
 				maxHeight = 0
@@ -176,25 +197,25 @@ func (l *flow) Layout() {
 		if maxHeight < pref.Height {
 			maxHeight = pref.Height
 		}
-		availWidth -= pref.Width + l.hSpacing
+		availWidth -= pref.Width + f.hSpacing
 		if availWidth <= 0 {
 			pt.X = insets.Left
-			pt.Y += maxHeight + l.vSpacing
+			pt.Y += maxHeight + f.vSpacing
 			availWidth = width
-			availHeight -= maxHeight + l.vSpacing
-			l.applyRects(children[start:i+1], rects[start:i+1], maxHeight)
+			availHeight -= maxHeight + f.vSpacing
+			f.applyRects(children[start:i+1], rects[start:i+1], maxHeight)
 			start = i + 1
 			maxHeight = 0
 		} else {
-			pt.X += pref.Width + l.hSpacing
+			pt.X += pref.Width + f.hSpacing
 		}
 	}
 	if start < len(children) {
-		l.applyRects(children[start:], rects[start:], maxHeight)
+		f.applyRects(children[start:], rects[start:], maxHeight)
 	}
 }
 
-func (l *flow) applyRects(children []Layoutable, rects []geom.Rect, maxHeight float64) {
+func (f *Flow) applyRects(children []Layoutable, rects []geom.Rect, maxHeight float64) {
 	for i, child := range children {
 		vAlign, ok := child.LayoutData().(align.Alignment)
 		if !ok {
