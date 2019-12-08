@@ -97,6 +97,12 @@ func (d *delegate) ApplicationDidResignActive(notification *ns.Notification) {
 	}
 }
 
+func (d *delegate) ApplicationOpenURLs(sender *ns.Application, urls []string) {
+	if OpenURLsCallback != nil {
+		OpenURLsCallback(urls)
+	}
+}
+
 func (d *delegate) ThemeChanged(notification *ns.Notification) {
 	draw.MarkSystemColorsForUpdate()
 	if OSThemeChangedCallback != nil {

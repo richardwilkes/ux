@@ -39,6 +39,10 @@ var (
 	// DidDeactivateCallback is called once the application is deactivated.
 	DidDeactivateCallback func()
 
+	// OpenURLsCallback is called when the application is asked to open one or
+	// more URLs by the OS or external application.
+	OpenURLsCallback func(urls []string)
+
 	// OSThemeChangedCallback is called when the OS theme is changed.
 	OSThemeChangedCallback func()
 
