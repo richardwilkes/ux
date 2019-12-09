@@ -19,6 +19,9 @@ type menuBarData struct {
 type osMenuBar = *menuBarData
 
 func osMenuBarForWindow(wnd *ux.Window, updater func(*Menu)) (bar *Bar, isGlobal, isFirst bool) {
+	if !window.IsValid() {
+		return nil, false, false
+	}
 	if ux.MenuItemSelectionCallback == nil {
 		ux.MenuItemSelectionCallback = handleMenuItemSelection
 		ux.MenuValidationCallback = validateMenu

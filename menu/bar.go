@@ -19,10 +19,7 @@ type Bar struct {
 // optional. If present, it will be called prior to showing a top-level menu,
 // giving a chance to modify that menu.
 func BarForWindow(window *ux.Window, updater func(*Menu)) (bar *Bar, isGlobal, isFirst bool) {
-	if window.IsValid() {
-		return osMenuBarForWindow(window, updater)
-	}
-	return nil, false, false
+	return osMenuBarForWindow(window, updater)
 }
 
 // BarHeight returns the height of the Bar when displayed in a window.

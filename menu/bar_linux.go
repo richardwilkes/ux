@@ -5,6 +5,9 @@ import "github.com/richardwilkes/ux"
 type osMenuBar = int
 
 func osMenuBarForWindow(wnd *ux.Window, updater func(*Menu)) (bar *Bar, isGlobal, isFirst bool) {
+	if !window.IsValid() {
+		return nil, false, false
+	}
 	// RAW: Implement
 	return nil, false, false
 }
