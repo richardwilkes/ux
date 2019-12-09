@@ -35,5 +35,6 @@ const (
 const (
 	ModalResponseCancel = iota
 	ModalResponseOK
+	ModalResponseDiscard
 	ModalResponseUserBase = 1000
 )
