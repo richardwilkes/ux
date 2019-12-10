@@ -40,7 +40,7 @@ func NewDialog(img *draw.Image, msgPanel, buttonPanel *ux.Panel) *ux.Window {
 	columns := 1
 	if img != nil {
 		columns++
-		icon := label.NewWithImage(img)
+		icon := label.New().SetImage(img)
 		icon.SetBorder(border.NewEmpty(geom.Insets{Bottom: 16, Right: 8}))
 		flex.NewData().VAlign(align.Start).Apply(icon)
 		content.AddChild(icon.AsPanel())
@@ -87,8 +87,7 @@ func breakTextIntoLabels(panel *ux.Panel, text string, font *draw.Font) {
 					text = text[1:]
 				} else {
 					part := text[:i]
-					l := label.NewWithText(part)
-					l.Font = font
+					l := label.New().SetText(part).SetFont(font)
 					if returns > 1 {
 						l.SetBorder(border.NewEmpty(geom.Insets{Top: 8}))
 					}
@@ -98,8 +97,7 @@ func breakTextIntoLabels(panel *ux.Panel, text string, font *draw.Font) {
 				}
 			} else {
 				if text != "" {
-					l := label.NewWithText(text)
-					l.Font = font
+					l := label.New().SetText(text).SetFont(font)
 					if returns > 1 {
 						l.SetBorder(border.NewEmpty(geom.Insets{Top: 8}))
 					}

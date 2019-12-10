@@ -35,11 +35,10 @@ func (f *LabelCellFactory) CellHeight() float64 {
 
 // CreateCell implements the CellFactory interface.
 func (f *LabelCellFactory) CreateCell(owner *ux.Panel, element interface{}, index int, selected, focused bool) *ux.Panel {
-	txtLabel := label.NewWithText(fmt.Sprintf("%v", element))
-	txtLabel.Font = draw.ViewsFont
+	txtLabel := label.New().SetText(fmt.Sprintf("%v", element)).SetFont(draw.ViewsFont)
 	txtLabel.SetBorder(border.NewEmpty(geom.Insets{Left: 4, Right: 4}))
 	if selected {
-		txtLabel.TextInk = draw.AlternateSelectedControlTextColor
+		txtLabel.SetInk(draw.AlternateSelectedControlTextColor)
 	}
 	return txtLabel.AsPanel()
 }

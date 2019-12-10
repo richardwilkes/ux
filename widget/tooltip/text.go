@@ -27,8 +27,7 @@ func NewWithText(text string) *ux.Panel {
 	tip := NewBase()
 	flex.New().Apply(tip)
 	for _, str := range strings.Split(text, "\n") {
-		l := label.NewWithText(str)
-		l.Font = draw.SystemFont
+		l := label.New().SetText(str).SetFont(draw.SystemFont)
 		tip.AddChild(l.AsPanel())
 	}
 	return tip
@@ -41,14 +40,12 @@ func NewWithSecondaryText(primary, secondary string) *ux.Panel {
 	tip := NewBase()
 	flex.New().Apply(tip)
 	for _, str := range strings.Split(primary, "\n") {
-		l := label.NewWithText(str)
-		l.Font = draw.SystemFont
+		l := label.New().SetText(str).SetFont(draw.SystemFont)
 		tip.AddChild(l.AsPanel())
 	}
 	if secondary != "" {
 		for _, str := range strings.Split(secondary, "\n") {
-			l := label.NewWithText(str)
-			l.Font = draw.SmallSystemFont
+			l := label.New().SetText(str).SetFont(draw.SmallSystemFont)
 			tip.AddChild(l.AsPanel())
 		}
 	}

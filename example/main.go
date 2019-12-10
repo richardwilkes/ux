@@ -144,7 +144,7 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 			content.AddChild(wv.AsPanel())
 		}
 	} else {
-		imgPanel := label.NewWithImage(mountainsImg)
+		imgPanel := label.New().SetImage(mountainsImg)
 		imgPanel.SetFocusable(true)
 		_, prefSize, _ := imgPanel.Sizes(geom.Size{})
 		imgPanel.SetFrameRect(geom.Rect{Size: prefSize})
@@ -378,12 +378,11 @@ func createAboutWindow() {
 		content := aboutWindow.Content()
 		content.SetBorder(border.NewEmpty(geom.NewUniformInsets(10)))
 		flex.New().Apply(content)
-		title := label.NewWithText(cmdline.AppName)
-		title.Font = draw.EmphasizedSystemFont
+		title := label.New().SetText(cmdline.AppName).SetFont(draw.EmphasizedSystemFont)
 		flexData := flex.NewData().HAlign(align.Fill).HGrab(true)
 		flexData.Apply(title)
 		content.AddChild(title.AsPanel())
-		desc := label.NewWithText("Simple app to demonstrate the\ncapabilities of the ui framework.")
+		desc := label.New().SetText("Simple app to demonstrate the\ncapabilities of the ui framework.")
 		flexData.Apply(desc)
 		content.AddChild(desc.AsPanel())
 		aboutWindow.Pack()
