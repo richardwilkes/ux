@@ -28,14 +28,25 @@ linters-settings:
       - experimental
     disabled-checks:
       - sloppyReassign
-      - dupImport
-      - commentFormatting
   gofmt:
     simplify: true
   golint:
     min-confidence: 0.8
   govet:
     check-shadowing: true
+    settings:
+      printf:
+        funcs:
+          - Errorf
+          - Warnf
+          - Infof
+          - Debugf
+          - Fatalf
+          - StartRootSpanf
+          - StartSubSpanf
+          - EndWithMsgf
+          - Newf
+          - NewWithCausef
   maligned:
     suggest-new: true
   misspell:
@@ -55,6 +66,7 @@ linters:
     - goconst
     - gocritic
     - gofmt
+    - goimports
     - golint
     - gosec
     - gosimple
@@ -76,5 +88,15 @@ issues:
   new: false
   exclude-use-default: false
   exclude:
+    - should call os.Exit to set exit code
+    - "G301: Expect directory permissions to be 0750 or less"
+    - "G302: Expect file permissions to be 0600 or less"
+    - "G304: Potential file inclusion via variable"
     - "G104: Errors unhandled"
     - "G204: Subprocess launched with variable"
+  exclude-rules:
+    - path: _gen\.go
+      linters:
+        - unused
+        - deadcode
+        - goconst

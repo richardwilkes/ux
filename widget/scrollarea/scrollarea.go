@@ -1,6 +1,8 @@
 package scrollarea
 
 import (
+	"math"
+
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
 	"github.com/richardwilkes/ux/border"
@@ -8,7 +10,6 @@ import (
 	"github.com/richardwilkes/ux/keys"
 	"github.com/richardwilkes/ux/widget/scrollarea/behavior"
 	"github.com/richardwilkes/ux/widget/scrollbar"
-	"math"
 )
 
 // ScrollArea provides a panel that can hold another panel and show it through

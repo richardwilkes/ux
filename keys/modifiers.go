@@ -2,8 +2,9 @@ package keys
 
 import (
 	"bytes"
-	"github.com/richardwilkes/toolbox"
 	"runtime"
+
+	"github.com/richardwilkes/toolbox"
 )
 
 // Possible Modifiers values.

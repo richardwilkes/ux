@@ -1,9 +1,10 @@
 package menu
 
 import (
+	"runtime"
+
 	"github.com/richardwilkes/toolbox"
 	"github.com/richardwilkes/ux"
-	"runtime"
 )
 
 // Bar represents a set of menus.

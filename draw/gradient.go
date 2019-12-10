@@ -2,6 +2,7 @@ package draw
 
 import (
 	"fmt"
+
 	"github.com/richardwilkes/toolbox/xmath/geom"
 )
 

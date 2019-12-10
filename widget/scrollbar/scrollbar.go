@@ -1,14 +1,15 @@
 package scrollbar
 
 import (
+	"math"
+	"time"
+
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
 	"github.com/richardwilkes/ux/draw"
 	"github.com/richardwilkes/ux/keys"
 	"github.com/richardwilkes/ux/layout"
 	"github.com/richardwilkes/ux/widget"
-	"math"
-	"time"
 )
 
 const (
