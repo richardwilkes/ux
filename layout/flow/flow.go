@@ -1,28 +1,29 @@
-package layout
+package flow
 
 import (
 	"math"
 
 	"github.com/richardwilkes/toolbox/xmath/geom"
+	"github.com/richardwilkes/ux/layout"
 	"github.com/richardwilkes/ux/layout/align"
 )
 
 // Flow holds the flow layout information.
 type Flow struct {
-	target   Layoutable
+	target   layout.Layoutable
 	hSpacing float64
 	vSpacing float64
 }
 
-// NewFlow creates a new Flow layout. This layout arranges the children of its
+// New creates a new Flow layout. This layout arranges the children of its
 // target left-to-right, then top-to-bottom at their preferred sizes, if
 // possible. Each child of the target may have an Alignment set for its
 // LayoutData to control vertical positioning within the row. If not present,
 // Start is assumed.
-func NewFlow() *Flow {
+func New() *Flow {
 	return &Flow{
-		hSpacing: DefaultHSpacing,
-		vSpacing: DefaultVSpacing,
+		hSpacing: layout.DefaultHSpacing,
+		vSpacing: layout.DefaultVSpacing,
 	}
 }
 
@@ -40,7 +41,7 @@ func (f *Flow) VSpacing(vSpacing float64) *Flow {
 
 // Apply the layout to the target. A copy is made of this layout and that is
 // applied to the target, so this layout may be applied to other targets.
-func (f *Flow) Apply(target Layoutable) {
+func (f *Flow) Apply(target layout.Layoutable) {
 	flow := *f
 	flow.target = target
 	target.SetLayout(&flow)
@@ -137,7 +138,7 @@ func (f *Flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 	result.Height += insets.Bottom
 	largestChildMin.Width += insets.Left + insets.Right
 	largestChildMin.Height += insets.Top + insets.Bottom
-	return largestChildMin, result, MaxSize(result)
+	return largestChildMin, result, layout.MaxSize(result)
 }
 
 // Layout implements Layout.
@@ -215,7 +216,7 @@ func (f *Flow) Layout() {
 	}
 }
 
-func (f *Flow) applyRects(children []Layoutable, rects []geom.Rect, maxHeight float64) {
+func (f *Flow) applyRects(children []layout.Layoutable, rects []geom.Rect, maxHeight float64) {
 	for i, child := range children {
 		vAlign, ok := child.LayoutData().(align.Alignment)
 		if !ok {

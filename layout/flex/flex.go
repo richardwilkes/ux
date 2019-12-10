@@ -1,17 +1,18 @@
-package layout
+package flex
 
 import (
 	"math"
 
 	"github.com/richardwilkes/toolbox/xmath"
 	"github.com/richardwilkes/toolbox/xmath/geom"
+	"github.com/richardwilkes/ux/layout"
 	"github.com/richardwilkes/ux/layout/align"
 )
 
 // Flex lays out the children of its Layoutable based on the Data assigned to
 // each child.
 type Flex struct {
-	target       Layoutable
+	target       layout.Layoutable
 	rows         int
 	columns      int
 	hSpacing     float64
@@ -21,12 +22,12 @@ type Flex struct {
 	equalColumns bool
 }
 
-// NewFlex creates a new Flex layout and sets it on the Layoutable.
-func NewFlex() *Flex {
+// New creates a new Flex layout and sets it on the Layoutable.
+func New() *Flex {
 	return &Flex{
 		columns:  1,
-		hSpacing: DefaultHSpacing,
-		vSpacing: DefaultVSpacing,
+		hSpacing: layout.DefaultHSpacing,
+		vSpacing: layout.DefaultVSpacing,
 		hAlign:   align.Start,
 		vAlign:   align.Start,
 	}
@@ -73,7 +74,7 @@ func (f *Flex) EqualColumns(equalColumns bool) *Flex {
 
 // Apply the layout to the target. A copy is made of this layout and that is
 // applied to the target, so this layout may be applied to other targets.
-func (f *Flex) Apply(target Layoutable) {
+func (f *Flex) Apply(target layout.Layoutable) {
 	flex := *f
 	flex.target = target
 	target.SetLayout(&flex)
@@ -89,7 +90,7 @@ func (f *Flex) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 		min.AddInsets(insets)
 		pref.AddInsets(insets)
 	}
-	return min, pref, MaxSize(pref)
+	return min, pref, layout.MaxSize(pref)
 }
 
 // Layout implements the Layout interface.
@@ -149,7 +150,7 @@ func (f *Flex) layout(location geom.Point, hint geom.Size, move, useMinimumSize 
 	return totalSize
 }
 
-func (f *Flex) prepChildren(useMinimumSize bool) []Layoutable {
+func (f *Flex) prepChildren(useMinimumSize bool) []layout.Layoutable {
 	children := f.target.ChildrenForLayout()
 	for _, child := range children {
 		getDataFromTarget(child).computeCacheSize(child.Sizes, geom.Size{}, useMinimumSize)
@@ -157,17 +158,17 @@ func (f *Flex) prepChildren(useMinimumSize bool) []Layoutable {
 	return children
 }
 
-func getDataFromTarget(target Layoutable) *FlexData {
-	if data, ok := target.LayoutData().(*FlexData); ok {
+func getDataFromTarget(target layout.Layoutable) *Data {
+	if data, ok := target.LayoutData().(*Data); ok {
 		return data
 	}
-	data := NewFlexData()
+	data := NewData()
 	target.SetLayoutData(data)
 	return data
 }
 
-func (f *Flex) buildGrid(children []Layoutable) [][]Layoutable {
-	var grid [][]Layoutable
+func (f *Flex) buildGrid(children []layout.Layoutable) [][]layout.Layoutable {
+	var grid [][]layout.Layoutable
 	var row, column int
 	f.rows = 0
 	for _, child := range children {
@@ -177,7 +178,7 @@ func (f *Flex) buildGrid(children []Layoutable) [][]Layoutable {
 		for {
 			lastRow := row + vSpan
 			if lastRow >= len(grid) {
-				grid = append(grid, make([]Layoutable, f.columns))
+				grid = append(grid, make([]layout.Layoutable, f.columns))
 			}
 			for column < f.columns && grid[row][column] != nil {
 				column++
@@ -210,7 +211,7 @@ func (f *Flex) buildGrid(children []Layoutable) [][]Layoutable {
 	return grid
 }
 
-func (f *Flex) adjustColumnWidths(width float64, grid [][]Layoutable) []float64 {
+func (f *Flex) adjustColumnWidths(width float64, grid [][]layout.Layoutable) []float64 {
 	availableWidth := width - f.hSpacing*float64(f.columns-1)
 	expandCount := 0
 	widths := make([]float64, f.columns)
@@ -400,7 +401,7 @@ func (f *Flex) apportionExtra(extra float64, base, count, span int, expand []boo
 	}
 }
 
-func (f *Flex) getData(grid [][]Layoutable, row, column int, first bool) *FlexData {
+func (f *Flex) getData(grid [][]layout.Layoutable, row, column int, first bool) *Data {
 	target := grid[row][column]
 	if target != nil {
 		data := getDataFromTarget(target)
@@ -425,7 +426,7 @@ func (f *Flex) getData(grid [][]Layoutable, row, column int, first bool) *FlexDa
 	return nil
 }
 
-func (f *Flex) wrap(width float64, grid [][]Layoutable, widths []float64, useMinimumSize bool) {
+func (f *Flex) wrap(width float64, grid [][]layout.Layoutable, widths []float64, useMinimumSize bool) {
 	if width > 0 {
 		for j := 0; j < f.columns; j++ {
 			for i := 0; i < f.rows; i++ {
@@ -452,7 +453,7 @@ func (f *Flex) wrap(width float64, grid [][]Layoutable, widths []float64, useMin
 	}
 }
 
-func (f *Flex) adjustRowHeights(height float64, grid [][]Layoutable) []float64 {
+func (f *Flex) adjustRowHeights(height float64, grid [][]layout.Layoutable) []float64 {
 	availableHeight := height - f.vSpacing*float64(f.rows-1)
 	expandCount := 0
 	heights := make([]float64, f.rows)
@@ -600,7 +601,7 @@ func (f *Flex) adjustRowHeights(height float64, grid [][]Layoutable) []float64 {
 	return heights
 }
 
-func (f *Flex) positionChildren(location geom.Point, grid [][]Layoutable, widths, heights []float64) {
+func (f *Flex) positionChildren(location geom.Point, grid [][]layout.Layoutable, widths, heights []float64) {
 	gridY := location.Y
 	for i := 0; i < f.rows; i++ {
 		gridX := location.X

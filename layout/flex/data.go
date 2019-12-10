@@ -1,12 +1,13 @@
-package layout
+package flex
 
 import (
 	"github.com/richardwilkes/toolbox/xmath/geom"
+	"github.com/richardwilkes/ux/layout"
 	"github.com/richardwilkes/ux/layout/align"
 )
 
-// FlexData is used to control how an object is laid out by the Flex layout.
-type FlexData struct {
+// Data is used to control how an object is laid out by the Flex layout.
+type Data struct {
 	cacheSize    geom.Size
 	minCacheSize geom.Size
 	sizeHint     geom.Size
@@ -19,9 +20,9 @@ type FlexData struct {
 	vGrab        bool
 }
 
-// NewFlexData creates new flex layout data.
-func NewFlexData() *FlexData {
-	return &FlexData{
+// NewData creates new flex layout data.
+func NewData() *Data {
+	return &Data{
 		hSpan:  1,
 		vSpan:  1,
 		hAlign: align.Start,
@@ -31,67 +32,67 @@ func NewFlexData() *FlexData {
 
 // SizeHint sets a hint requesting a particular size for the target. Defaults
 // to no hint (0, 0).
-func (f *FlexData) SizeHint(sizeHint geom.Size) *FlexData {
+func (f *Data) SizeHint(sizeHint geom.Size) *Data {
 	f.sizeHint = sizeHint
 	return f
 }
 
 // MinSize overrides the minimum size of the target. Defaults to no override
 // (0, 0).
-func (f *FlexData) MinSize(minSize geom.Size) *FlexData {
+func (f *Data) MinSize(minSize geom.Size) *Data {
 	f.minSize = minSize
 	return f
 }
 
 // HSpan sets the number of columns the target should span. Defaults to 1.
-func (f *FlexData) HSpan(hSpan int) *FlexData {
+func (f *Data) HSpan(hSpan int) *Data {
 	f.hSpan = hSpan
 	return f
 }
 
 // VSpan sets the number of rows the target should span. Defaults to 1.
-func (f *FlexData) VSpan(vSpan int) *FlexData {
+func (f *Data) VSpan(vSpan int) *Data {
 	f.vSpan = vSpan
 	return f
 }
 
 // HAlign sets the horizontal alignment of the target within its available
 // space. Defaults to Start.
-func (f *FlexData) HAlign(hAlign align.Alignment) *FlexData {
+func (f *Data) HAlign(hAlign align.Alignment) *Data {
 	f.hAlign = hAlign
 	return f
 }
 
 // VAlign sets the vertical alignment of the target within its available
 // space. Defaults to Middle.
-func (f *FlexData) VAlign(vAlign align.Alignment) *FlexData {
+func (f *Data) VAlign(vAlign align.Alignment) *Data {
 	f.vAlign = vAlign
 	return f
 }
 
 // HGrab sets whether excess horizontal space should be grabbed. Defaults to
 // false.
-func (f *FlexData) HGrab(hGrab bool) *FlexData {
+func (f *Data) HGrab(hGrab bool) *Data {
 	f.hGrab = hGrab
 	return f
 }
 
 // VGrab sets whether excess vertical space should be grabbed. Defaults to
 // false.
-func (f *FlexData) VGrab(vGrab bool) *FlexData {
+func (f *Data) VGrab(vGrab bool) *Data {
 	f.vGrab = vGrab
 	return f
 }
 
 // Apply the layout data to the target. A copy is made of this data and that
 // is applied to the target, so this data may be applied to other targets.
-func (f *FlexData) Apply(target Layoutable) {
+func (f *Data) Apply(target layout.Layoutable) {
 	flexData := *f
 	flexData.normalizeAndResetCache()
 	target.SetLayoutData(&flexData)
 }
 
-func (f *FlexData) normalizeAndResetCache() {
+func (f *Data) normalizeAndResetCache() {
 	f.cacheSize.Width = 0
 	f.cacheSize.Height = 0
 	f.minCacheSize.Width = 0
@@ -116,7 +117,7 @@ func (f *FlexData) normalizeAndResetCache() {
 	}
 }
 
-func (f *FlexData) computeCacheSize(sizer Sizer, hint geom.Size, useMinimumSize bool) {
+func (f *Data) computeCacheSize(sizer layout.Sizer, hint geom.Size, useMinimumSize bool) {
 	f.normalizeAndResetCache()
 	min, pref, max := sizer(hint)
 	if hint.Width > 0 || hint.Height > 0 {

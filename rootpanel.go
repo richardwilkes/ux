@@ -2,7 +2,7 @@ package ux
 
 import (
 	"github.com/richardwilkes/toolbox/xmath/geom"
-	"github.com/richardwilkes/ux/layout"
+	"github.com/richardwilkes/ux/layout/flow"
 )
 
 type rootPanel struct {
@@ -19,7 +19,7 @@ func newRootPanel(wnd *Window) *rootPanel {
 	p.SetLayout(&rootLayout{root: p})
 	p.window = wnd
 	content := NewPanel()
-	layout.NewFlow().Apply(content)
+	flow.New().Apply(content)
 	p.setContent(content)
 	return p
 }
