@@ -3,6 +3,7 @@ package label
 import (
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
+	"github.com/richardwilkes/ux/border"
 	"github.com/richardwilkes/ux/draw"
 	"github.com/richardwilkes/ux/layout/align"
 	"github.com/richardwilkes/ux/layout/side"
@@ -71,7 +72,8 @@ func (l *Label) Font() *draw.Font {
 	return l.font
 }
 
-// SetFont sets the font to use when drawing text content.
+// SetFont sets the font to use when drawing text content. Passing in nil will
+// use the default font.
 func (l *Label) SetFont(font *draw.Font) *Label {
 	if font == nil {
 		font = draw.LabelFont
@@ -88,7 +90,8 @@ func (l *Label) Ink() draw.Ink {
 	return l.ink
 }
 
-// SetInk sets the ink to use when drawing text content.
+// SetInk sets the ink to use when drawing text content. Passing in nil will
+// use the default ink.
 func (l *Label) SetInk(ink draw.Ink) *Label {
 	if ink == nil {
 		ink = draw.LabelColor
@@ -161,11 +164,29 @@ func (l *Label) SetSide(s side.Side) *Label {
 	return l
 }
 
+// SetBorder sets the border. May be nil.
+func (l *Label) SetBorder(b border.Border) *Label {
+	l.Panel.SetBorder(b)
+	return l
+}
+
+// SetEnabled sets enabled state.
+func (l *Label) SetEnabled(enabled bool) *Label {
+	l.Panel.SetEnabled(enabled)
+	return l
+}
+
+// SetFocusable whether the label can have the keyboard focus.
+func (l *Label) SetFocusable(focusable bool) *Label {
+	l.Panel.SetFocusable(focusable)
+	return l
+}
+
 // DefaultSizes provides the default sizing.
 func (l *Label) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 	pref = widget.LabelSize(l.text, l.font, l.image, l.side, l.gap)
-	if border := l.Border(); border != nil {
-		pref.AddInsets(border.Insets())
+	if b := l.Border(); b != nil {
+		pref.AddInsets(b.Insets())
 	}
 	pref.GrowToInteger()
 	pref.ConstrainForHint(hint)

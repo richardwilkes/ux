@@ -32,7 +32,7 @@ type Panel struct {
 	layoutData                          interface{}
 	children                            []*Panel
 	Tooltip                             *Panel
-	Data                                map[string]interface{}
+	data                                map[string]interface{}
 	DrawCallback                        func(gc draw.Context, dirty geom.Rect, inLiveResize bool)
 	GainedFocusCallback                 func()
 	LostFocusCallback                   func()
@@ -76,7 +76,6 @@ func NewPanel() *Panel {
 func (p *Panel) InitTypeAndID(self interface{}) {
 	p.id = atomic.AddUint64(&nextGlobalID, 1)
 	p.self = self
-	p.Data = make(map[string]interface{})
 }
 
 // ID returns the unique ID for the panel.
@@ -268,9 +267,12 @@ func (p *Panel) Border() border.Border {
 }
 
 // SetBorder sets the border for this panel. May be nil.
-func (p *Panel) SetBorder(b border.Border) {
-	p.border = b
-	p.NeedsLayout = true
+func (p *Panel) SetBorder(b border.Border) *Panel {
+	if p.border != b {
+		p.border = b
+		p.MarkForLayoutAndRedraw()
+	}
+	return p
 }
 
 // Sizer returns the sizer for this panel, if any.
@@ -409,11 +411,12 @@ func (p *Panel) Enabled() bool {
 }
 
 // SetEnabled sets this panel's enabled state.
-func (p *Panel) SetEnabled(enabled bool) {
+func (p *Panel) SetEnabled(enabled bool) *Panel {
 	if p.disabled == enabled {
 		p.disabled = !enabled
 		p.MarkForRedraw()
 	}
+	return p
 }
 
 // Focusable returns true if this panel can have the keyboard focus.
@@ -422,10 +425,11 @@ func (p *Panel) Focusable() bool {
 }
 
 // SetFocusable sets whether this panel can have the keyboard focus.
-func (p *Panel) SetFocusable(focusable bool) {
+func (p *Panel) SetFocusable(focusable bool) *Panel {
 	if p.focusable != focusable {
 		p.focusable = focusable
 	}
+	return p
 }
 
 // Focused returns true if this panel has the keyboard focus.
@@ -499,4 +503,12 @@ func (p *Panel) ScrollRectIntoView(rect geom.Rect) {
 		rect.Point.Add(look.frame.Point)
 		look = look.parent
 	}
+}
+
+// ClientData returns a map of client data for this panel.
+func (p *Panel) ClientData() map[string]interface{} {
+	if p.data == nil {
+		p.data = make(map[string]interface{})
+	}
+	return p.data
 }

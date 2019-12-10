@@ -85,7 +85,7 @@ type Window struct {
 	DropCallback func(di *DragInfo) bool
 	// DropFinishedCallback is called when the drop concludes.
 	DropFinishedCallback func(di *DragInfo)
-	Data                 map[string]interface{}
+	data                 map[string]interface{}
 	title                string
 	root                 *rootPanel
 	focus                *Panel
@@ -150,7 +150,6 @@ func NewWindow(title string, frame geom.Rect, style StyleMask) (*Window, error) 
 	}
 	w := &Window{
 		id:         atomic.AddUint64(&nextGlobalID, 1),
-		Data:       make(map[string]interface{}),
 		title:      title,
 		background: draw.WindowBackgroundColor,
 		style:      style,
@@ -814,4 +813,12 @@ func (w *Window) dropFinished(di *DragInfo) {
 		}
 	}
 	w.lastDragPanel = nil
+}
+
+// ClientData returns a map of client data for this window.
+func (w *Window) ClientData() map[string]interface{} {
+	if w.data == nil {
+		w.data = make(map[string]interface{})
+	}
+	return w.data
 }

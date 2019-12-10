@@ -40,8 +40,7 @@ func NewDialog(img *draw.Image, msgPanel, buttonPanel *ux.Panel) *ux.Window {
 	columns := 1
 	if img != nil {
 		columns++
-		icon := label.New().SetImage(img)
-		icon.SetBorder(border.NewEmpty(geom.Insets{Bottom: 16, Right: 8}))
+		icon := label.New().SetImage(img).SetBorder(border.NewEmpty(geom.Insets{Bottom: 16, Right: 8}))
 		flex.NewData().VAlign(align.Start).Apply(icon)
 		content.AddChild(icon.AsPanel())
 	}

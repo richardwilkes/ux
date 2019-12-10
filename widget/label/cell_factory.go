@@ -22,8 +22,7 @@ func (f *CellFactory) CellHeight() float64 {
 
 // CreateCell implements widget.CellFactory.
 func (f *CellFactory) CreateCell(owner *ux.Panel, element interface{}, index int, selected, focused bool) *ux.Panel {
-	txtLabel := New().SetText(fmt.Sprintf("%v", element)).SetFont(draw.ViewsFont)
-	txtLabel.SetBorder(border.NewEmpty(geom.Insets{Left: 4, Right: 4}))
+	txtLabel := New().SetText(fmt.Sprintf("%v", element)).SetFont(draw.ViewsFont).SetBorder(border.NewEmpty(geom.Insets{Left: 4, Right: 4}))
 	if selected {
 		txtLabel.SetInk(draw.AlternateSelectedControlTextColor)
 	}
