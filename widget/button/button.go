@@ -10,7 +10,6 @@ import (
 	"github.com/richardwilkes/ux/layout/align"
 	"github.com/richardwilkes/ux/layout/side"
 	"github.com/richardwilkes/ux/widget"
-	"github.com/richardwilkes/ux/widget/label"
 	"github.com/richardwilkes/ux/widget/selectable"
 )
 
@@ -95,7 +94,7 @@ func (b *Button) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 	if b.Image == nil && text == "" {
 		text = "M"
 	}
-	pref = label.Size(text, b.Font, b.Image, b.ImageSide, b.ImageGap)
+	pref = widget.LabelSize(text, b.Font, b.Image, b.ImageSide, b.ImageGap)
 	if border := b.Border(); border != nil {
 		pref.AddInsets(border.Insets())
 	}
@@ -132,7 +131,7 @@ func (b *Button) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool
 	rect.Y += b.verticalMargin()
 	rect.Width -= b.horizontalMargin() * 2
 	rect.Height -= b.verticalMargin() * 2
-	label.Draw(gc, rect, b.HAlign, b.VAlign, b.Text, b.Font, b.currentTextInk(), b.Image, b.ImageSide, b.ImageGap, b.Enabled())
+	widget.DrawLabel(gc, rect, b.HAlign, b.VAlign, b.Text, b.Font, b.currentTextInk(), b.Image, b.ImageSide, b.ImageGap, b.Enabled())
 }
 
 func (b *Button) currentBackgroundInk() draw.Ink {

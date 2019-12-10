@@ -1,6 +1,9 @@
 package checkbox
 
 import (
+	"math"
+	"time"
+
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
 	"github.com/richardwilkes/ux/draw"
@@ -10,9 +13,6 @@ import (
 	"github.com/richardwilkes/ux/layout/side"
 	"github.com/richardwilkes/ux/widget"
 	"github.com/richardwilkes/ux/widget/checkbox/state"
-	"github.com/richardwilkes/ux/widget/label"
-	"math"
-	"time"
 )
 
 // CheckBox represents a clickable checkbox with an optional label.
@@ -97,7 +97,7 @@ func (c *CheckBox) boxAndLabelSize() geom.Size {
 	if c.Image == nil && c.Text == "" {
 		return geom.Size{Width: boxSize, Height: boxSize}
 	}
-	size := label.Size(c.Text, c.Font, c.Image, c.ImageSide, c.Gap)
+	size := widget.LabelSize(c.Text, c.Font, c.Image, c.ImageSide, c.Gap)
 	size.Width += c.Gap + boxSize
 	if size.Height < boxSize {
 		size.Height = boxSize
@@ -133,7 +133,7 @@ func (c *CheckBox) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bo
 		r := rect
 		r.X += boxSize + c.Gap
 		r.Width -= boxSize + c.Gap
-		label.Draw(gc, r, c.HAlign, c.VAlign, c.Text, c.Font, c.TextInk, c.Image, c.ImageSide, c.Gap, c.Enabled())
+		widget.DrawLabel(gc, r, c.HAlign, c.VAlign, c.Text, c.Font, c.TextInk, c.Image, c.ImageSide, c.Gap, c.Enabled())
 	}
 	if rect.Height > boxSize {
 		rect.Y += math.Floor((rect.Height - boxSize) / 2)

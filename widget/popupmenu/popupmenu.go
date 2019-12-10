@@ -13,7 +13,6 @@ import (
 	"github.com/richardwilkes/ux/layout/align"
 	"github.com/richardwilkes/ux/menu"
 	"github.com/richardwilkes/ux/widget"
-	"github.com/richardwilkes/ux/widget/label"
 )
 
 // PopupMenu represents a clickable button that displays a menu of choices.
@@ -65,12 +64,12 @@ func New() *PopupMenu {
 
 // DefaultSizes provides the default sizing.
 func (p *PopupMenu) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
-	pref = label.Size("M", p.Font, nil, 0, 0)
+	pref = widget.LabelSize("M", p.Font, nil, 0, 0)
 	for _, one := range p.items {
 		switch one.(type) {
 		case *separationMarker:
 		default:
-			size := label.Size(fmt.Sprintf("%v", one), p.Font, nil, 0, 0)
+			size := widget.LabelSize(fmt.Sprintf("%v", one), p.Font, nil, 0, 0)
 			if pref.Width < size.Width {
 				pref.Width = size.Width
 			}
@@ -106,7 +105,7 @@ func (p *PopupMenu) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 	triWidth := rect.Height * 0.75
 	triHeight := triWidth / 2
 	rect.Width -= triWidth
-	label.Draw(gc, rect, align.Start, align.Middle, p.Text(), p.Font, p.currentTextInk(), nil, 0, 0, p.Enabled())
+	widget.DrawLabel(gc, rect, align.Start, align.Middle, p.Text(), p.Font, p.currentTextInk(), nil, 0, 0, p.Enabled())
 	rect.Width += triWidth + p.HMargin/2
 	gc.MoveTo(rect.X+rect.Width, rect.Y+(rect.Height-triHeight)/2)
 	gc.LineTo(rect.X+rect.Width-triWidth, rect.Y+(rect.Height-triHeight)/2)

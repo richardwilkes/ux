@@ -11,7 +11,6 @@ import (
 	"github.com/richardwilkes/ux/layout/align"
 	"github.com/richardwilkes/ux/layout/side"
 	"github.com/richardwilkes/ux/widget"
-	"github.com/richardwilkes/ux/widget/label"
 	"github.com/richardwilkes/ux/widget/selectable"
 )
 
@@ -96,7 +95,7 @@ func (c *RadioButton) circleAndLabelSize() geom.Size {
 	if c.Image == nil && c.Text == "" {
 		return geom.Size{Width: circleSize, Height: circleSize}
 	}
-	size := label.Size(c.Text, c.Font, c.Image, c.ImageSide, c.Gap)
+	size := widget.LabelSize(c.Text, c.Font, c.Image, c.ImageSide, c.Gap)
 	size.Width += c.Gap + circleSize
 	if size.Height < circleSize {
 		size.Height = circleSize
@@ -135,7 +134,7 @@ func (c *RadioButton) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize
 		r := rect
 		r.X += circleSize + c.Gap
 		r.Width -= circleSize + c.Gap
-		label.Draw(gc, r, c.HAlign, c.VAlign, c.Text, c.Font, c.TextInk, c.Image, c.ImageSide, c.Gap, c.Enabled())
+		widget.DrawLabel(gc, r, c.HAlign, c.VAlign, c.Text, c.Font, c.TextInk, c.Image, c.ImageSide, c.Gap, c.Enabled())
 	}
 	if rect.Height > circleSize {
 		rect.Y += math.Floor((rect.Height - circleSize) / 2)

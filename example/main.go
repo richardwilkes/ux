@@ -19,7 +19,6 @@ import (
 	"github.com/richardwilkes/ux/layout/flex"
 	"github.com/richardwilkes/ux/layout/flow"
 	"github.com/richardwilkes/ux/menu"
-	"github.com/richardwilkes/ux/widget"
 	"github.com/richardwilkes/ux/widget/browser"
 	"github.com/richardwilkes/ux/widget/button"
 	"github.com/richardwilkes/ux/widget/checkbox"
@@ -175,7 +174,7 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 }
 
 func createListPanel() *ux.Panel {
-	lst := list.New(&widget.LabelCellFactory{})
+	lst := list.New(&label.CellFactory{})
 	lst.Append(
 		"One",
 		"Two",
