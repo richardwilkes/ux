@@ -1,0 +1,83 @@
+package {{package .}}
+{{- $name := .Name}}
+{{- $inst := .Instance}}
+
+import (
+	{{- range imports .}}
+	{{if .}}"{{.}}"{{end}}
+	{{- end}}
+)
+
+type managed struct {
+	{{- range .Vars}}
+	{{.Name}} {{.Type}}{{if not .Default}} //nolint:structcheck{{end}}
+	{{- end}}
+}
+
+func (m *managed) initialize() {
+	{{- range .Vars}}
+	{{- if .Default}}
+	m.{{.Name}} = {{.Default}}
+	{{- end}}
+	{{- end}}
+}
+
+{{- range .Vars}}
+{{comment (printf "%s returns %s." (firstToUpper .Name) .Comment) 77}}
+func ({{$inst}} *{{$name}}) {{firstToUpper .Name}}() {{.Type}} {
+	return {{$inst}}.{{.Name}}
+}
+
+{{- $setComment := (printf "Set%s sets %s." (firstToUpper .Name) .Comment)}}
+{{- if .UseDefaultIfNil}}{{$setComment = (printf "%s Pass in nil to use the default." $setComment)}}{{end}}
+{{comment $setComment 77}}
+func ({{$inst}} *{{$name}}) Set{{firstToUpper .Name}}(value {{.Type}}) *{{$name}} {
+	{{- if .UseDefaultIfNil}}
+	if value == nil {
+		value = {{.Default}}
+	}
+	{{- end}}
+	{{- if .MinOfZero}}
+	if value < 0 {
+		value = 0
+	}
+	{{- end}}
+	if {{$inst}}.{{.Name}} != value {
+		{{$inst}}.{{.Name}} = value
+		{{- if and .Redraw .Layout}}
+		{{$inst}}.MarkForLayoutAndRedraw()
+		{{- else if .Redraw}}
+		{{$inst}}.MarkForRedraw()
+		{{- else if .Layout}}
+		{{$inst}}.NeedsLayout = true
+		{{- end}}
+	}
+	return {{$inst}}
+}
+{{- end}}
+
+// SetBorder sets the border. May be nil.
+func ({{.Instance}} *{{.Name}}) SetBorder(value border.Border) *{{.Name}} {
+	{{.Instance}}.Panel.SetBorder(value)
+	return {{.Instance}}
+}
+
+// SetEnabled sets enabled state.
+func ({{.Instance}} *{{.Name}}) SetEnabled(enabled bool) *{{.Name}} {
+	{{.Instance}}.Panel.SetEnabled(enabled)
+	return {{.Instance}}
+}
+
+// SetFocusable whether it can have the keyboard focus.
+func ({{.Instance}} *{{.Name}}) SetFocusable(focusable bool) *{{.Name}} {
+	{{.Instance}}.Panel.SetFocusable(focusable)
+	return {{.Instance}}
+}
+
+{{- if .Selectable}}
+// SetSelected sets the panel's selected state.
+func ({{.Instance}} *{{.Name}}) SetSelected(selected bool) *{{.Name}} {
+	{{.Instance}}.Panel.SetSelected(selected)
+	return {{.Instance}}
+}
+{{- end}}

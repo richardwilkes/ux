@@ -239,7 +239,7 @@ func createButtonsPanel() *ux.Panel {
 }
 
 func createButton(title string, panel *ux.Panel) *button.Button {
-	btn := button.NewWithText(title)
+	btn := button.New().SetText(title)
 	btn.ClickCallback = func() { jot.Infof("%v was clicked.", btn) }
 	btn.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", btn))
 	panel.AddChild(btn.AsPanel())
@@ -247,7 +247,7 @@ func createButton(title string, panel *ux.Panel) *button.Button {
 }
 
 func createImageButton(img *draw.Image, panel *ux.Panel) *button.Button {
-	btn := button.NewWithImage(img)
+	btn := button.New().SetImage(img)
 	btn.ClickCallback = func() { jot.Infof("%v was clicked.", btn) }
 	btn.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", btn))
 	panel.AddChild(btn.AsPanel())
@@ -267,7 +267,7 @@ func createCheckBoxPanel() *ux.Panel {
 }
 
 func createCheckBox(title string, panel *ux.Panel) *checkbox.CheckBox {
-	check := checkbox.NewWithText(title)
+	check := checkbox.New().SetText(title)
 	check.ClickCallback = func() { jot.Infof("%v was clicked.", check) }
 	check.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", check))
 	panel.AddChild(check.AsPanel())
@@ -285,8 +285,7 @@ func createToggleButtonsPanel() *ux.Panel {
 }
 
 func createToggleButton(img *draw.Image, panel *ux.Panel, group *selectable.Group) *button.Button {
-	btn := createImageButton(img, panel)
-	btn.Sticky = true
+	btn := createImageButton(img, panel).SetSticky(true)
 	btn.SetLayoutData(align.Middle)
 	group.Add(btn.AsSelectable())
 	return btn

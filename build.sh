@@ -54,11 +54,10 @@ if [ -z $SKIP_LINTERS ]; then
 fi
 export PATH=$TOOLS_DIR:$PATH
 
-# Remove any generated code
+# Remove any generated code, then generate it anew
 find . -iname "*_gen.go" -exec /bin/rm {} \;
-
-# Generate the embedded file system
 mkembeddedfs --pkg icons --output icons/efs_gen.go --no-modtime --ignore ".*\\.go" --strip icons icons
+go generate ./...
 
 # Build the Go code
 if [ -z $SKIP_OTHER_OSES ]; then

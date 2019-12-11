@@ -10,7 +10,6 @@ import (
 	"github.com/richardwilkes/ux/keys"
 	"github.com/richardwilkes/ux/layout"
 	"github.com/richardwilkes/ux/layout/align"
-	"github.com/richardwilkes/ux/layout/side"
 	"github.com/richardwilkes/ux/widget"
 	"github.com/richardwilkes/ux/widget/checkbox/state"
 )
@@ -18,56 +17,16 @@ import (
 // CheckBox represents a clickable checkbox with an optional label.
 type CheckBox struct {
 	ux.Panel
-	ClickCallback        func()
-	Text                 string
-	Image                *draw.Image
-	Font                 *draw.Font      // The font to use
-	BackgroundInk        draw.Ink        // The background ink when enabled but not pressed or focused
-	FocusedBackgroundInk draw.Ink        // The background ink when enabled and focused
-	PressedBackgroundInk draw.Ink        // The background ink when enabled and pressed
-	EdgeInk              draw.Ink        // The ink to use on the edges
-	TextInk              draw.Ink        // The text ink to use
-	PressedTextInk       draw.Ink        // The text ink when enabled and pressed
-	Gap                  float64         // The gap to put between the checkbox, image and text
-	CornerRadius         float64         // The amount of rounding to use on the corners
-	ClickAnimationTime   time.Duration   // The amount of time to spend animating the click action
-	ImageSide            side.Side       // The side of the text the image should be on
-	HAlign               align.Alignment // The horizontal alignment to use
-	VAlign               align.Alignment // The vertical alignment to use
-	State                state.State
-	Pressed              bool
+	managed
+	ClickCallback func()
+	State         state.State
+	Pressed       bool
 }
 
-// NewWithText creates a new checkbox with the specified text.
-func NewWithText(text string) *CheckBox {
-	return New(text, nil)
-}
-
-// NewWithImage creates a new checkbox with the specified image.
-func NewWithImage(img *draw.Image) *CheckBox {
-	return New("", img)
-}
-
-// New creates a new checkbox with the specified text and
-// image.
-func New(text string, img *draw.Image) *CheckBox {
-	c := &CheckBox{
-		Text:                 text,
-		Image:                img,
-		Font:                 draw.SystemFont,
-		BackgroundInk:        draw.ControlBackgroundInk,
-		FocusedBackgroundInk: draw.ControlFocusedBackgroundInk,
-		PressedBackgroundInk: draw.ControlPressedBackgroundInk,
-		EdgeInk:              draw.ControlEdgeAdjColor,
-		TextInk:              draw.ControlTextColor,
-		PressedTextInk:       draw.AlternateSelectedControlTextColor,
-		Gap:                  3,
-		CornerRadius:         4,
-		ClickAnimationTime:   time.Millisecond * 100,
-		ImageSide:            side.Left,
-		HAlign:               align.Start,
-		VAlign:               align.Middle,
-	}
+// New creates a new checkbox.
+func New() *CheckBox {
+	c := &CheckBox{}
+	c.managed.initialize()
 	c.InitTypeAndID(c)
 	c.SetFocusable(true)
 	c.SetSizer(c.DefaultSizes)
@@ -94,11 +53,11 @@ func (c *CheckBox) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 
 func (c *CheckBox) boxAndLabelSize() geom.Size {
 	boxSize := c.boxSize()
-	if c.Image == nil && c.Text == "" {
+	if c.image == nil && c.text == "" {
 		return geom.Size{Width: boxSize, Height: boxSize}
 	}
-	size := widget.LabelSize(c.Text, c.Font, c.Image, c.ImageSide, c.Gap)
-	size.Width += c.Gap + boxSize
+	size := widget.LabelSize(c.text, c.font, c.image, c.side, c.gap)
+	size.Width += c.gap + boxSize
 	if size.Height < boxSize {
 		size.Height = boxSize
 	}
@@ -106,21 +65,21 @@ func (c *CheckBox) boxAndLabelSize() geom.Size {
 }
 
 func (c *CheckBox) boxSize() float64 {
-	return math.Ceil(c.Font.Height())
+	return math.Ceil(c.font.Height())
 }
 
 // DefaultDraw provides the default drawing.
 func (c *CheckBox) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
 	rect := c.ContentRect(false)
 	size := c.boxAndLabelSize()
-	switch c.HAlign {
+	switch c.hAlign {
 	case align.Middle, align.Fill:
 		rect.X = math.Floor(rect.X + (rect.Width-size.Width)/2)
 	case align.End:
 		rect.X += rect.Width - size.Width
 	default: // Start
 	}
-	switch c.VAlign {
+	switch c.vAlign {
 	case align.Middle, align.Fill:
 		rect.Y = math.Floor(rect.Y + (rect.Height-size.Height)/2)
 	case align.End:
@@ -129,11 +88,11 @@ func (c *CheckBox) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bo
 	}
 	rect.Size = size
 	boxSize := c.boxSize()
-	if c.Image != nil || c.Text != "" {
+	if c.image != nil || c.text != "" {
 		r := rect
-		r.X += boxSize + c.Gap
-		r.Width -= boxSize + c.Gap
-		widget.DrawLabel(gc, r, c.HAlign, c.VAlign, c.Text, c.Font, c.TextInk, c.Image, c.ImageSide, c.Gap, c.Enabled())
+		r.X += boxSize + c.gap
+		r.Width -= boxSize + c.gap
+		widget.DrawLabel(gc, r, c.hAlign, c.vAlign, c.text, c.font, c.textInk, c.image, c.side, c.gap, c.Enabled())
 	}
 	if rect.Height > boxSize {
 		rect.Y += math.Floor((rect.Height - boxSize) / 2)
@@ -143,7 +102,7 @@ func (c *CheckBox) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bo
 	if !c.Enabled() {
 		gc.SetOpacity(0.33)
 	}
-	widget.DrawRoundedRectBase(gc, rect, c.CornerRadius, c.currentBackgroundInk(), c.EdgeInk)
+	widget.DrawRoundedRectBase(gc, rect, c.cornerRadius, c.currentBackgroundInk(), c.edgeInk)
 	rect.InsetUniform(0.5)
 	switch c.State {
 	case state.Mixed:
@@ -163,19 +122,19 @@ func (c *CheckBox) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bo
 func (c *CheckBox) currentBackgroundInk() draw.Ink {
 	switch {
 	case c.Pressed:
-		return c.PressedBackgroundInk
+		return c.pressedBackgroundInk
 	case c.Focused():
-		return c.FocusedBackgroundInk
+		return c.focusedBackgroundInk
 	default:
-		return c.BackgroundInk
+		return c.backgroundInk
 	}
 }
 
 func (c *CheckBox) currentMarkInk() draw.Ink {
 	if c.Pressed || c.Focused() {
-		return c.PressedTextInk
+		return c.pressedTextInk
 	}
-	return c.TextInk
+	return c.textInk
 }
 
 // Click makes the checkbox behave as if a user clicked on it.
@@ -186,7 +145,7 @@ func (c *CheckBox) Click() {
 	c.MarkForRedraw()
 	c.FlushDrawing()
 	c.Pressed = pressed
-	time.Sleep(c.ClickAnimationTime)
+	time.Sleep(c.clickAnimationTime)
 	c.MarkForRedraw()
 	if c.ClickCallback != nil {
 		c.ClickCallback()

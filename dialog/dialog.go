@@ -117,7 +117,7 @@ func ErrorDialogWithMessage(primary, detail string) {
 // ErrorDialogWithPanel displays a standard error dialog with the specified
 // panel.
 func ErrorDialogWithPanel(msgPanel *ux.Panel) {
-	okButton := button.NewWithText(i18n.Text("OK"))
+	okButton := button.New().SetText(i18n.Text("OK"))
 	if dialog := NewDialog(icons.Error(), msgPanel, okButton.AsPanel()); dialog != nil {
 		okButton.ClickCallback = func() {
 			dialog.StopModal(ids.ModalResponseOK)
@@ -140,9 +140,9 @@ func QuestionDialog(primary, detail string) int {
 func QuestionDialogWithPanel(msgPanel *ux.Panel) int {
 	buttonPanel := ux.NewPanel()
 	flex.New().Columns(2).EqualColumns(true).HSpacing(layout.DefaultHSpacing * 2).Apply(buttonPanel)
-	cancelButton := button.NewWithText(i18n.Text("Cancel"))
+	cancelButton := button.New().SetText(i18n.Text("Cancel"))
 	buttonPanel.AddChild(cancelButton.AsPanel())
-	okButton := button.NewWithText(i18n.Text("OK"))
+	okButton := button.New().SetText(i18n.Text("OK"))
 	buttonPanel.AddChild(okButton.AsPanel())
 	for _, p := range buttonPanel.Children() {
 		flex.NewData().HAlign(align.Fill).Apply(p)
