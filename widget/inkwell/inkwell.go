@@ -16,37 +16,19 @@ import (
 // InkWell represents a control that holds and lets a user choose an ink.
 type InkWell struct {
 	ux.Panel
+	managed
+	ink                   draw.Ink
 	InkChangedCallback    func()
 	ClickCallback         func()
 	ValidateImageCallback func(*draw.Image) *draw.Image
-	WellInk               draw.Ink
-	BackgroundInk         draw.Ink      // The background ink when enabled but not selected, pressed or focused
-	FocusedBackgroundInk  draw.Ink      // The background ink when enabled and focused
-	PressedBackgroundInk  draw.Ink      // The background ink when enabled and pressed
-	EdgeInk               draw.Ink      // The ink to use on the edges
-	EdgeHighlightInk      draw.Ink      // The ink to use just inside the edges
-	ClickAnimationTime    time.Duration // The amount of time to spend animating the click action
-	CornerRadius          float64       // The amount of rounding to use on the corners
-	ContentSize           float64       // The content width and height
-	ImageScale            float64       // The image scale to use for images dropped onto the well. Defaults to 0.5 to support retina displays.
 	Pressed               bool
 	dragInProgress        bool
 }
 
 // New creates a new InkWell.
-func New(ink draw.Ink) *InkWell {
-	well := &InkWell{
-		WellInk:              ink,
-		BackgroundInk:        draw.ControlBackgroundInk,
-		FocusedBackgroundInk: draw.ControlFocusedBackgroundInk,
-		PressedBackgroundInk: draw.ControlPressedBackgroundInk,
-		EdgeInk:              draw.ControlEdgeAdjColor,
-		EdgeHighlightInk:     draw.ControlEdgeHighlightAdjColor,
-		ClickAnimationTime:   time.Millisecond * 100,
-		CornerRadius:         4,
-		ContentSize:          20,
-		ImageScale:           0.5,
-	}
+func New() *InkWell {
+	well := &InkWell{ink: draw.ControlBackgroundInk}
+	well.managed.initialize()
 	well.InitTypeAndID(well)
 	well.SetFocusable(true)
 	well.SetSizer(well.DefaultSizes)
@@ -68,22 +50,30 @@ func New(ink draw.Ink) *InkWell {
 	return well
 }
 
-// SetInk sets the ink well's ink. Use this rather than directly setting
-// WellInk to trigger the InkChangedCallback.
-func (well *InkWell) SetInk(ink draw.Ink) {
-	if ink != well.WellInk {
-		well.WellInk = ink
+// Ink returns the well's ink.
+func (well *InkWell) Ink() draw.Ink {
+	return well.ink
+}
+
+// SetInk sets the ink well's ink.
+func (well *InkWell) SetInk(ink draw.Ink) *InkWell {
+	if ink == nil {
+		ink = draw.ControlBackgroundInk
+	}
+	if ink != well.ink {
+		well.ink = ink
 		well.MarkForRedraw()
 		if well.InkChangedCallback != nil {
 			well.InkChangedCallback()
 		}
 	}
+	return well
 }
 
 // DefaultSizes provides the default sizing.
 func (well *InkWell) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
-	pref.Width = 4 + well.ContentSize
-	pref.Height = 4 + well.ContentSize
+	pref.Width = 4 + well.contentSize
+	pref.Height = 4 + well.contentSize
 	if border := well.Border(); border != nil {
 		pref.AddInsets(border.Insets())
 	}
@@ -98,29 +88,29 @@ func (well *InkWell) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize 
 		gc.SetOpacity(0.33)
 	}
 	r := well.ContentRect(false)
-	widget.DrawRoundedRectBase(gc, r, well.CornerRadius, well.currentBackgroundInk(), well.EdgeInk)
+	widget.DrawRoundedRectBase(gc, r, well.cornerRadius, well.currentBackgroundInk(), well.edgeInk)
 	r.InsetUniform(1.5)
-	gc.RoundedRect(r, well.CornerRadius)
-	if p, ok := well.WellInk.(*draw.Pattern); ok {
+	gc.RoundedRect(r, well.cornerRadius)
+	if p, ok := well.ink.(*draw.Pattern); ok {
 		gc.Save()
 		gc.Clip()
 		p.Image().DrawInRect(gc, r)
 		gc.Restore()
 	} else {
-		gc.Fill(well.WellInk)
+		gc.Fill(well.ink)
 	}
-	gc.RoundedRect(r, well.CornerRadius)
-	gc.Stroke(well.EdgeHighlightInk)
+	gc.RoundedRect(r, well.cornerRadius)
+	gc.Stroke(well.edgeHighlightInk)
 }
 
 func (well *InkWell) currentBackgroundInk() draw.Ink {
 	switch {
 	case well.Pressed || well.dragInProgress:
-		return well.PressedBackgroundInk
+		return well.pressedBackgroundInk
 	case well.Focused():
-		return well.FocusedBackgroundInk
+		return well.focusedBackgroundInk
 	default:
-		return well.BackgroundInk
+		return well.backgroundInk
 	}
 }
 
@@ -174,7 +164,7 @@ func (well *InkWell) Click() {
 	well.MarkForRedraw()
 	well.FlushDrawing()
 	well.Pressed = pressed
-	time.Sleep(well.ClickAnimationTime)
+	time.Sleep(well.clickAnimationTime)
 	well.MarkForRedraw()
 	if well.ClickCallback != nil {
 		well.ClickCallback()
@@ -240,7 +230,7 @@ func (well *InkWell) DefaultDrop(dragInfo *ux.DragInfo) bool {
 	}
 	for _, one := range dragInfo.DataForType(dt) {
 		if urlStr := draw.DistillImageURL(clipboard.BytesToURL(one)); urlStr != "" {
-			img, err := draw.NewImageFromURL(urlStr, well.ImageScale)
+			img, err := draw.NewImageFromURL(urlStr, well.imageScale)
 			if err != nil {
 				jot.Warn(err)
 				continue
