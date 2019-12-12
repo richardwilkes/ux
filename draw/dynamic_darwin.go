@@ -49,18 +49,9 @@ func osUpdateSystemColors() {
 		WindowBackgroundColor.Color = convertColor(ns.WindowBackgroundColor())
 		WindowFrameTextColor.Color = convertColor(ns.WindowFrameTextColor())
 
-		colors := ns.AlternatingContentBackgroundColors()
-		switch {
-		case len(AlternatingContentBackgroundColors) > len(colors):
-			AlternatingContentBackgroundColors = AlternatingContentBackgroundColors[:len(colors)]
-		case len(AlternatingContentBackgroundColors) < len(colors):
-			for i := len(AlternatingContentBackgroundColors); i < len(colors); i++ {
-				AlternatingContentBackgroundColors = append(AlternatingContentBackgroundColors, &DynamicColor{})
-			}
-		default:
-		}
-		for i := range colors {
-			AlternatingContentBackgroundColors[i].Color = convertColor(colors[i])
+		if colors := ns.AlternatingContentBackgroundColors(); len(colors) > 1 {
+			// We currently ignore the first color, since we want to reuse TextBackgroundColor for it
+			TextAlternateBackgroundColor.Color = convertColor(colors[1])
 		}
 
 		controlBackgroundGradient.Stops[0].Color.Color = ControlColor.Color.AdjustBrightness(0.2)

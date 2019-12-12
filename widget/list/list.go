@@ -17,27 +17,29 @@ import (
 // items, represented by cells.
 type List struct {
 	ux.Panel
-	DoubleClickCallback       func()
-	NewSelectionCallback      func()
-	factory                   widget.CellFactory
-	rows                      []interface{}
-	Selection                 *xmath.BitSet
-	savedSelection            *xmath.BitSet
-	AlternatingBackgroundInks []draw.Ink
-	SelectedBackgroundInk     draw.Ink
-	anchor                    int
-	pressed                   bool
+	DoubleClickCallback    func()
+	NewSelectionCallback   func()
+	factory                widget.CellFactory
+	rows                   []interface{}
+	Selection              *xmath.BitSet
+	savedSelection         *xmath.BitSet
+	BackgroundInk          draw.Ink
+	AlternateBackgroundInk draw.Ink
+	SelectedBackgroundInk  draw.Ink
+	anchor                 int
+	pressed                bool
 }
 
 // New creates a new List control.
 func New(factory widget.CellFactory) *List {
 	l := &List{
-		factory:                   factory,
-		Selection:                 &xmath.BitSet{},
-		savedSelection:            &xmath.BitSet{},
-		AlternatingBackgroundInks: draw.AlternatingBackgroundInks,
-		SelectedBackgroundInk:     draw.ControlAccentColor,
-		anchor:                    -1,
+		factory:                factory,
+		Selection:              &xmath.BitSet{},
+		savedSelection:         &xmath.BitSet{},
+		BackgroundInk:          draw.TextBackgroundColor,
+		AlternateBackgroundInk: draw.TextAlternateBackgroundColor,
+		SelectedBackgroundInk:  draw.ControlAccentColor,
+		anchor:                 -1,
 	}
 	l.InitTypeAndID(l)
 	l.SetFocusable(true)
@@ -140,10 +142,13 @@ func (l *List) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) 
 			cell.SetFrameRect(cellRect)
 			y += cellRect.Height
 			var ink draw.Ink
-			if selected {
+			switch {
+			case selected:
 				ink = l.SelectedBackgroundInk
-			} else {
-				ink = l.AlternatingBackgroundInks[index%len(l.AlternatingBackgroundInks)]
+			case index%2 == 0:
+				ink = l.BackgroundInk
+			default:
+				ink = l.AlternateBackgroundInk
 			}
 			gc.Rect(geom.Rect{Point: geom.Point{X: rect.X, Y: cellRect.Y}, Size: geom.Size{Width: rect.Width, Height: cellRect.Height}})
 			gc.Fill(ink)
