@@ -1,6 +1,6 @@
 // Code created from "widget.go.tmpl" - don't edit by hand
 
-package checkbox
+package radiobutton
 
 import (
 	"time"
@@ -40,278 +40,284 @@ func (m *managed) initialize() {
 	m.gap = 3
 	m.cornerRadius = 4
 	m.clickAnimationTime = time.Millisecond * 100
-	m.hAlign = align.Start
+	m.hAlign = align.Middle
 	m.vAlign = align.Middle
 	m.side = side.Left
 }
 
 // Image returns the image. May be nil.
-func (c *CheckBox) Image() *draw.Image {
-	return c.image
+func (r *RadioButton) Image() *draw.Image {
+	return r.image
 }
 
 // SetImage sets the image. May be nil.
-func (c *CheckBox) SetImage(value *draw.Image) *CheckBox {
-	if c.image != value {
-		c.image = value
-		c.MarkForLayoutAndRedraw()
+func (r *RadioButton) SetImage(value *draw.Image) *RadioButton {
+	if r.image != value {
+		r.image = value
+		r.MarkForLayoutAndRedraw()
 	}
-	return c
+	return r
 }
 
 // Text returns the text content.
-func (c *CheckBox) Text() string {
-	return c.text
+func (r *RadioButton) Text() string {
+	return r.text
 }
 
 // SetText sets the text content.
-func (c *CheckBox) SetText(value string) *CheckBox {
-	if c.text != value {
-		c.text = value
-		c.MarkForLayoutAndRedraw()
+func (r *RadioButton) SetText(value string) *RadioButton {
+	if r.text != value {
+		r.text = value
+		r.MarkForLayoutAndRedraw()
 	}
-	return c
+	return r
 }
 
 // Font returns the font that will be used when drawing text content.
-func (c *CheckBox) Font() *draw.Font {
-	return c.font
+func (r *RadioButton) Font() *draw.Font {
+	return r.font
 }
 
 // SetFont sets the font that will be used when drawing text content. Pass in
 // nil to use the default.
-func (c *CheckBox) SetFont(value *draw.Font) *CheckBox {
+func (r *RadioButton) SetFont(value *draw.Font) *RadioButton {
 	if value == nil {
 		value = draw.SystemFont
 	}
-	if c.font != value {
-		c.font = value
-		c.MarkForLayoutAndRedraw()
+	if r.font != value {
+		r.font = value
+		r.MarkForLayoutAndRedraw()
 	}
-	return c
+	return r
 }
 
 // BackgroundInk returns the ink that will be used for the background when
 // enabled but not pressed or focused.
-func (c *CheckBox) BackgroundInk() draw.Ink {
-	return c.backgroundInk
+func (r *RadioButton) BackgroundInk() draw.Ink {
+	return r.backgroundInk
 }
 
 // SetBackgroundInk sets the ink that will be used for the background when
 // enabled but not pressed or focused. Pass in nil to use the default.
-func (c *CheckBox) SetBackgroundInk(value draw.Ink) *CheckBox {
+func (r *RadioButton) SetBackgroundInk(value draw.Ink) *RadioButton {
 	if value == nil {
 		value = draw.ControlBackgroundInk
 	}
-	if c.backgroundInk != value {
-		c.backgroundInk = value
-		c.MarkForRedraw()
+	if r.backgroundInk != value {
+		r.backgroundInk = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // FocusedBackgroundInk returns the ink that will be used for the background
 // when enabled and focused.
-func (c *CheckBox) FocusedBackgroundInk() draw.Ink {
-	return c.focusedBackgroundInk
+func (r *RadioButton) FocusedBackgroundInk() draw.Ink {
+	return r.focusedBackgroundInk
 }
 
 // SetFocusedBackgroundInk sets the ink that will be used for the background
 // when enabled and focused. Pass in nil to use the default.
-func (c *CheckBox) SetFocusedBackgroundInk(value draw.Ink) *CheckBox {
+func (r *RadioButton) SetFocusedBackgroundInk(value draw.Ink) *RadioButton {
 	if value == nil {
 		value = draw.ControlFocusedBackgroundInk
 	}
-	if c.focusedBackgroundInk != value {
-		c.focusedBackgroundInk = value
-		c.MarkForRedraw()
+	if r.focusedBackgroundInk != value {
+		r.focusedBackgroundInk = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // PressedBackgroundInk returns the ink that will be used for the background
 // when enabled and pressed.
-func (c *CheckBox) PressedBackgroundInk() draw.Ink {
-	return c.pressedBackgroundInk
+func (r *RadioButton) PressedBackgroundInk() draw.Ink {
+	return r.pressedBackgroundInk
 }
 
 // SetPressedBackgroundInk sets the ink that will be used for the background
 // when enabled and pressed. Pass in nil to use the default.
-func (c *CheckBox) SetPressedBackgroundInk(value draw.Ink) *CheckBox {
+func (r *RadioButton) SetPressedBackgroundInk(value draw.Ink) *RadioButton {
 	if value == nil {
 		value = draw.ControlPressedBackgroundInk
 	}
-	if c.pressedBackgroundInk != value {
-		c.pressedBackgroundInk = value
-		c.MarkForRedraw()
+	if r.pressedBackgroundInk != value {
+		r.pressedBackgroundInk = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // EdgeInk returns the ink that will be used for the edges.
-func (c *CheckBox) EdgeInk() draw.Ink {
-	return c.edgeInk
+func (r *RadioButton) EdgeInk() draw.Ink {
+	return r.edgeInk
 }
 
 // SetEdgeInk sets the ink that will be used for the edges. Pass in nil to
 // use the default.
-func (c *CheckBox) SetEdgeInk(value draw.Ink) *CheckBox {
+func (r *RadioButton) SetEdgeInk(value draw.Ink) *RadioButton {
 	if value == nil {
 		value = draw.ControlEdgeAdjColor
 	}
-	if c.edgeInk != value {
-		c.edgeInk = value
-		c.MarkForRedraw()
+	if r.edgeInk != value {
+		r.edgeInk = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // TextInk returns the ink that will be used for the text when disabled or
 // not pressed.
-func (c *CheckBox) TextInk() draw.Ink {
-	return c.textInk
+func (r *RadioButton) TextInk() draw.Ink {
+	return r.textInk
 }
 
 // SetTextInk sets the ink that will be used for the text when disabled or
 // not pressed. Pass in nil to use the default.
-func (c *CheckBox) SetTextInk(value draw.Ink) *CheckBox {
+func (r *RadioButton) SetTextInk(value draw.Ink) *RadioButton {
 	if value == nil {
 		value = draw.ControlTextColor
 	}
-	if c.textInk != value {
-		c.textInk = value
-		c.MarkForRedraw()
+	if r.textInk != value {
+		r.textInk = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // PressedTextInk returns the ink that will be used for the text when enabled
 // and pressed.
-func (c *CheckBox) PressedTextInk() draw.Ink {
-	return c.pressedTextInk
+func (r *RadioButton) PressedTextInk() draw.Ink {
+	return r.pressedTextInk
 }
 
 // SetPressedTextInk sets the ink that will be used for the text when enabled
 // and pressed. Pass in nil to use the default.
-func (c *CheckBox) SetPressedTextInk(value draw.Ink) *CheckBox {
+func (r *RadioButton) SetPressedTextInk(value draw.Ink) *RadioButton {
 	if value == nil {
 		value = draw.AlternateSelectedControlTextColor
 	}
-	if c.pressedTextInk != value {
-		c.pressedTextInk = value
-		c.MarkForRedraw()
+	if r.pressedTextInk != value {
+		r.pressedTextInk = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
-// Gap returns the gap to put between the checkbox, image and text.
-func (c *CheckBox) Gap() float64 {
-	return c.gap
+// Gap returns the gap to put between the image and text.
+func (r *RadioButton) Gap() float64 {
+	return r.gap
 }
 
-// SetGap sets the gap to put between the checkbox, image and text.
-func (c *CheckBox) SetGap(value float64) *CheckBox {
+// SetGap sets the gap to put between the image and text.
+func (r *RadioButton) SetGap(value float64) *RadioButton {
 	if value < 0 {
 		value = 0
 	}
-	if c.gap != value {
-		c.gap = value
-		c.MarkForLayoutAndRedraw()
+	if r.gap != value {
+		r.gap = value
+		r.MarkForLayoutAndRedraw()
 	}
-	return c
+	return r
 }
 
 // CornerRadius returns the amount of rounding to use on the corners.
-func (c *CheckBox) CornerRadius() float64 {
-	return c.cornerRadius
+func (r *RadioButton) CornerRadius() float64 {
+	return r.cornerRadius
 }
 
 // SetCornerRadius sets the amount of rounding to use on the corners.
-func (c *CheckBox) SetCornerRadius(value float64) *CheckBox {
+func (r *RadioButton) SetCornerRadius(value float64) *RadioButton {
 	if value < 0 {
 		value = 0
 	}
-	if c.cornerRadius != value {
-		c.cornerRadius = value
-		c.MarkForRedraw()
+	if r.cornerRadius != value {
+		r.cornerRadius = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // ClickAnimationTime returns the amount of time to spend animating the click
 // action.
-func (c *CheckBox) ClickAnimationTime() time.Duration {
-	return c.clickAnimationTime
+func (r *RadioButton) ClickAnimationTime() time.Duration {
+	return r.clickAnimationTime
 }
 
 // SetClickAnimationTime sets the amount of time to spend animating the click
 // action.
-func (c *CheckBox) SetClickAnimationTime(value time.Duration) *CheckBox {
+func (r *RadioButton) SetClickAnimationTime(value time.Duration) *RadioButton {
 	if value < time.Millisecond*50 {
 		value = time.Millisecond * 50
 	}
-	if c.clickAnimationTime != value {
-		c.clickAnimationTime = value
+	if r.clickAnimationTime != value {
+		r.clickAnimationTime = value
 	}
-	return c
+	return r
 }
 
 // HAlign returns the horizontal alignment.
-func (c *CheckBox) HAlign() align.Alignment {
-	return c.hAlign
+func (r *RadioButton) HAlign() align.Alignment {
+	return r.hAlign
 }
 
 // SetHAlign sets the horizontal alignment.
-func (c *CheckBox) SetHAlign(value align.Alignment) *CheckBox {
-	if c.hAlign != value {
-		c.hAlign = value
-		c.MarkForRedraw()
+func (r *RadioButton) SetHAlign(value align.Alignment) *RadioButton {
+	if r.hAlign != value {
+		r.hAlign = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // VAlign returns the vertical alignment.
-func (c *CheckBox) VAlign() align.Alignment {
-	return c.vAlign
+func (r *RadioButton) VAlign() align.Alignment {
+	return r.vAlign
 }
 
 // SetVAlign sets the vertical alignment.
-func (c *CheckBox) SetVAlign(value align.Alignment) *CheckBox {
-	if c.vAlign != value {
-		c.vAlign = value
-		c.MarkForRedraw()
+func (r *RadioButton) SetVAlign(value align.Alignment) *RadioButton {
+	if r.vAlign != value {
+		r.vAlign = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // Side returns the side of the text the image should be on.
-func (c *CheckBox) Side() side.Side {
-	return c.side
+func (r *RadioButton) Side() side.Side {
+	return r.side
 }
 
 // SetSide sets the side of the text the image should be on.
-func (c *CheckBox) SetSide(value side.Side) *CheckBox {
-	if c.side != value {
-		c.side = value
-		c.MarkForRedraw()
+func (r *RadioButton) SetSide(value side.Side) *RadioButton {
+	if r.side != value {
+		r.side = value
+		r.MarkForRedraw()
 	}
-	return c
+	return r
 }
 
 // SetBorder sets the border. May be nil.
-func (c *CheckBox) SetBorder(value border.Border) *CheckBox {
-	c.Panel.SetBorder(value)
-	return c
+func (r *RadioButton) SetBorder(value border.Border) *RadioButton {
+	r.Panel.SetBorder(value)
+	return r
 }
 
 // SetEnabled sets enabled state.
-func (c *CheckBox) SetEnabled(enabled bool) *CheckBox {
-	c.Panel.SetEnabled(enabled)
-	return c
+func (r *RadioButton) SetEnabled(enabled bool) *RadioButton {
+	r.Panel.SetEnabled(enabled)
+	return r
 }
 
 // SetFocusable whether it can have the keyboard focus.
-func (c *CheckBox) SetFocusable(focusable bool) *CheckBox {
-	c.Panel.SetFocusable(focusable)
-	return c
+func (r *RadioButton) SetFocusable(focusable bool) *RadioButton {
+	r.Panel.SetFocusable(focusable)
+	return r
+}
+
+// SetSelected sets the panel's selected state.
+func (r *RadioButton) SetSelected(selected bool) *RadioButton {
+	r.Panel.SetSelected(selected)
+	return r
 }

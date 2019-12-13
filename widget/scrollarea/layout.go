@@ -11,8 +11,8 @@ type scrollAreaLayout struct {
 }
 
 func (l *scrollAreaLayout) Sizes(hint geom.Size) (min, pref, max geom.Size) {
-	_, hBarSize, _ := l.scrollArea.HBar.Sizes(geom.Size{})
-	_, vBarSize, _ := l.scrollArea.VBar.Sizes(geom.Size{})
+	_, hBarSize, _ := l.scrollArea.ScrollBar(true).Sizes(geom.Size{})
+	_, vBarSize, _ := l.scrollArea.ScrollBar(false).Sizes(geom.Size{})
 	min.Width = vBarSize.Width * 2
 	min.Height = hBarSize.Height * 2
 	if l.scrollArea.content != nil {
@@ -34,8 +34,10 @@ func (l *scrollAreaLayout) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 }
 
 func (l *scrollAreaLayout) Layout() {
-	_, hBarSize, _ := l.scrollArea.HBar.Sizes(geom.Size{})
-	_, vBarSize, _ := l.scrollArea.VBar.Sizes(geom.Size{})
+	hBar := l.scrollArea.ScrollBar(true)
+	_, hBarSize, _ := hBar.Sizes(geom.Size{})
+	vBar := l.scrollArea.ScrollBar(false)
+	_, vBarSize, _ := vBar.Sizes(geom.Size{})
 	needHBar := false
 	needVBar := false
 	var insets geom.Insets
@@ -123,18 +125,18 @@ func (l *scrollAreaLayout) Layout() {
 		needHBar = true
 	}
 	if needHBar {
-		if l.scrollArea.HBar.Parent() == nil {
-			l.scrollArea.AddChild(l.scrollArea.HBar.AsPanel())
+		if hBar.Parent() == nil {
+			l.scrollArea.AddChild(hBar.AsPanel())
 		}
 	} else {
-		l.scrollArea.HBar.RemoveFromParent()
+		hBar.RemoveFromParent()
 	}
 	if needVBar {
-		if l.scrollArea.VBar.Parent() == nil {
-			l.scrollArea.AddChild(l.scrollArea.VBar.AsPanel())
+		if vBar.Parent() == nil {
+			l.scrollArea.AddChild(vBar.AsPanel())
 		}
 	} else {
-		l.scrollArea.VBar.RemoveFromParent()
+		vBar.RemoveFromParent()
 	}
 	l.scrollArea.view.SetFrameRect(geom.Rect{Point: area.Point, Size: visibleSize})
 	if needHBar {
@@ -147,7 +149,7 @@ func (l *scrollAreaLayout) Layout() {
 		if insets.Right >= 1 {
 			barRect.Width++
 		}
-		l.scrollArea.HBar.SetFrameRect(barRect)
+		hBar.SetFrameRect(barRect)
 	}
 	if needVBar {
 		vBarSize.Height = visibleSize.Height
@@ -159,7 +161,7 @@ func (l *scrollAreaLayout) Layout() {
 		if insets.Bottom >= 1 {
 			barRect.Height++
 		}
-		l.scrollArea.VBar.SetFrameRect(barRect)
+		vBar.SetFrameRect(barRect)
 	}
 	if l.scrollArea.content != nil {
 		contentRect := l.scrollArea.content.FrameRect()

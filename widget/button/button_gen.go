@@ -351,8 +351,8 @@ func (b *Button) ClickAnimationTime() time.Duration {
 // SetClickAnimationTime sets the amount of time to spend animating the click
 // action.
 func (b *Button) SetClickAnimationTime(value time.Duration) *Button {
-	if value < 0 {
-		value = 0
+	if value < time.Millisecond*50 {
+		value = time.Millisecond * 50
 	}
 	if b.clickAnimationTime != value {
 		b.clickAnimationTime = value

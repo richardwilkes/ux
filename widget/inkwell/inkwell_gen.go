@@ -135,8 +135,8 @@ func (well *InkWell) ImageScale() float64 {
 // SetImageScale sets the image scale to use for images dropped onto the
 // well. Defaults to 0.5 to support retina displays.
 func (well *InkWell) SetImageScale(value float64) *InkWell {
-	if value < 0 {
-		value = 0
+	if value < 0.05 {
+		value = 0.05
 	}
 	if well.imageScale != value {
 		well.imageScale = value
@@ -152,8 +152,8 @@ func (well *InkWell) ContentSize() float64 {
 
 // SetContentSize sets the content width and height.
 func (well *InkWell) SetContentSize(value float64) *InkWell {
-	if value < 0 {
-		value = 0
+	if value < 8 {
+		value = 8
 	}
 	if well.contentSize != value {
 		well.contentSize = value
@@ -188,8 +188,8 @@ func (well *InkWell) ClickAnimationTime() time.Duration {
 // SetClickAnimationTime sets the amount of time to spend animating the click
 // action.
 func (well *InkWell) SetClickAnimationTime(value time.Duration) *InkWell {
-	if value < 0 {
-		value = 0
+	if value < time.Millisecond*50 {
+		value = time.Millisecond * 50
 	}
 	if well.clickAnimationTime != value {
 		well.clickAnimationTime = value

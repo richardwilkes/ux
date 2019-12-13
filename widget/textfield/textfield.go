@@ -9,7 +9,6 @@ import (
 	"github.com/richardwilkes/toolbox/xmath"
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
-	"github.com/richardwilkes/ux/border"
 	"github.com/richardwilkes/ux/clipboard"
 	"github.com/richardwilkes/ux/clipboard/datatypes"
 	"github.com/richardwilkes/ux/draw"
@@ -21,51 +20,27 @@ import (
 // TextField provides a single-line text input control.
 type TextField struct {
 	ux.Panel
-	ModifiedCallback          func()
-	ValidateCallback          func() bool
-	Font                      *draw.Font    // The font to use.
-	UnfocusedBorder           border.Border // The border to use when not focused.
-	FocusedBorder             border.Border // The border to use when focused.
-	BackgroundInk             draw.Ink      // The ink to use for the background.
-	DisabledBackgroundInk     draw.Ink      // The ink to use for the background when disabled.
-	InvalidBackgroundInk      draw.Ink      // The ink to use for the background when marked invalid.
-	SelectedTextBackgroundInk draw.Ink      // The ink to use for the background of selected text.
-	TextInk                   draw.Ink      // The ink to use for the text.
-	SelectedTextInk           draw.Ink      // The ink to use for selected text.
-	WatermarkInk              draw.Ink      // The ink to use for the watermark text.
-	BlinkRate                 time.Duration // The rate at which the cursor blinks.
-	MinimumTextWidth          float64       // The minimum space to permit for text.
-	Watermark                 string
-	runes                     []rune
-	selectionStart            int
-	selectionEnd              int
-	selectionAnchor           int
-	forceShowUntil            time.Time
-	scrollOffset              float64
-	showCursor                bool
-	pending                   bool
-	extendByWord              bool
-	invalid                   bool
+	managed
+	ModifiedCallback func()
+	ValidateCallback func() bool
+	runes            []rune
+	selectionStart   int
+	selectionEnd     int
+	selectionAnchor  int
+	forceShowUntil   time.Time
+	scrollOffset     float64
+	showCursor       bool
+	pending          bool
+	extendByWord     bool
+	invalid          bool
 }
 
 // New creates a new, empty, text field.
 func New() *TextField {
-	t := &TextField{
-		Font:                      draw.UserFont,
-		UnfocusedBorder:           border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 1, Left: 4, Bottom: 1, Right: 4})),
-		FocusedBorder:             border.NewCompound(border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(2), false), border.NewEmpty(geom.Insets{Top: 0, Left: 3, Bottom: 0, Right: 3})),
-		BackgroundInk:             draw.TextBackgroundColor,
-		DisabledBackgroundInk:     draw.WindowBackgroundColor,
-		InvalidBackgroundInk:      draw.SystemRedColor,
-		SelectedTextBackgroundInk: draw.SelectedTextBackgroundColor,
-		TextInk:                   draw.TextColor,
-		SelectedTextInk:           draw.SelectedTextColor,
-		WatermarkInk:              draw.PlaceholderTextColor,
-		BlinkRate:                 time.Millisecond * 560,
-		MinimumTextWidth:          10,
-	}
+	t := &TextField{}
+	t.managed.initialize()
 	t.InitTypeAndID(t)
-	t.SetBorder(t.UnfocusedBorder)
+	t.SetBorder(t.unfocusedBorder)
 	t.SetFocusable(true)
 	t.SetSizer(t.DefaultSizes)
 	t.DrawCallback = t.DefaultDraw
@@ -88,11 +63,8 @@ func (t *TextField) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 	} else {
 		text = "M"
 	}
-	minWidth := t.MinimumTextWidth
-	if minWidth < 10 {
-		minWidth = 10
-	}
-	pref = t.Font.Extents(text)
+	minWidth := t.minimumTextWidth
+	pref = t.font.Extents(text)
 	if pref.Width < minWidth {
 		pref.Width = minWidth
 	}
@@ -118,44 +90,44 @@ func (t *TextField) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 	rect := t.ContentRect(false)
 	gc.Rect(rect)
 	gc.Clip()
-	textTop := rect.Y + (rect.Height-t.Font.Height())/2
+	textTop := rect.Y + (rect.Height-t.font.Height())/2
 	switch {
 	case t.HasSelectionRange():
 		left := rect.X + t.scrollOffset
 		if t.selectionStart > 0 {
 			pre := string(t.runes[:t.selectionStart])
-			gc.DrawString(left, textTop, t.Font, t.TextInk, pre)
-			left += t.Font.Width(pre)
+			gc.DrawString(left, textTop, t.font, t.textInk, pre)
+			left += t.font.Width(pre)
 		}
 		mid := string(t.runes[t.selectionStart:t.selectionEnd])
-		right := rect.X + t.Font.Width(string(t.runes[:t.selectionEnd])) + t.scrollOffset
-		selRect := geom.Rect{Point: geom.Point{X: left, Y: textTop}, Size: geom.Size{Width: right - left, Height: t.Font.Height()}}
+		right := rect.X + t.font.Width(string(t.runes[:t.selectionEnd])) + t.scrollOffset
+		selRect := geom.Rect{Point: geom.Point{X: left, Y: textTop}, Size: geom.Size{Width: right - left, Height: t.font.Height()}}
 		if t.Focused() {
 			gc.Rect(selRect)
-			gc.Fill(t.SelectedTextBackgroundInk)
+			gc.Fill(t.selectedTextBackgroundInk)
 		} else {
 			gc.SetStrokeWidth(2)
 			selRect.InsetUniform(0.5)
 			gc.Rect(selRect)
-			gc.Stroke(t.SelectedTextBackgroundInk)
+			gc.Stroke(t.selectedTextBackgroundInk)
 		}
-		gc.DrawString(left, textTop, t.Font, t.SelectedTextInk, mid)
+		gc.DrawString(left, textTop, t.font, t.selectedTextInk, mid)
 		if t.selectionStart < len(t.runes) {
-			gc.DrawString(right, textTop, t.Font, t.TextInk, string(t.runes[t.selectionEnd:]))
+			gc.DrawString(right, textTop, t.font, t.textInk, string(t.runes[t.selectionEnd:]))
 		}
 	case len(t.runes) == 0:
-		if t.Watermark != "" {
-			gc.DrawString(rect.X, textTop, t.Font, t.WatermarkInk, t.Watermark)
+		if t.watermark != "" {
+			gc.DrawString(rect.X, textTop, t.font, t.watermarkInk, t.watermark)
 		}
 	default:
-		gc.DrawString(rect.X+t.scrollOffset, textTop, t.Font, t.TextInk, string(t.runes))
+		gc.DrawString(rect.X+t.scrollOffset, textTop, t.font, t.textInk, string(t.runes))
 	}
 	if !t.HasSelectionRange() && t.Focused() {
 		if t.showCursor {
-			x := rect.X + t.Font.Width(string(t.runes[:t.selectionEnd])) + t.scrollOffset
+			x := rect.X + t.font.Width(string(t.runes[:t.selectionEnd])) + t.scrollOffset
 			gc.MoveTo(x, textTop)
-			gc.LineTo(x, textTop+t.Font.Height()-1)
-			gc.Stroke(t.TextInk)
+			gc.LineTo(x, textTop+t.font.Height()-1)
+			gc.Stroke(t.textInk)
 		}
 		t.scheduleBlink()
 	}
@@ -164,11 +136,11 @@ func (t *TextField) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 func (t *TextField) currentBackgroundInk() draw.Ink {
 	switch {
 	case t.invalid:
-		return t.InvalidBackgroundInk
+		return t.invalidBackgroundInk
 	case !t.Enabled():
-		return t.DisabledBackgroundInk
+		return t.disabledBackgroundInk
 	default:
-		return t.BackgroundInk
+		return t.backgroundInk
 	}
 }
 
@@ -176,7 +148,7 @@ func (t *TextField) scheduleBlink() {
 	window := t.Window()
 	if window != nil && window.IsValid() && !t.pending && t.Focused() {
 		t.pending = true
-		ux.InvokeAfter(t.blink, t.BlinkRate)
+		ux.InvokeAfter(t.blink, t.blinkRate)
 	}
 }
 
@@ -194,14 +166,14 @@ func (t *TextField) blink() {
 
 // DefaultFocusGained provides the default focus gained handling.
 func (t *TextField) DefaultFocusGained() {
-	t.SetBorder(t.FocusedBorder)
+	t.SetBorder(t.focusedBorder)
 	t.showCursor = true
 	t.MarkForRedraw()
 }
 
 // DefaultFocusLost provides the default focus lost handling.
 func (t *TextField) DefaultFocusLost() {
-	t.SetBorder(t.UnfocusedBorder)
+	t.SetBorder(t.unfocusedBorder)
 	t.MarkForRedraw()
 }
 
@@ -541,17 +513,15 @@ func (t *TextField) Text() string {
 	return string(t.runes)
 }
 
-// SetText sets the content of the field. Returns true if a modification was
-// made.
-func (t *TextField) SetText(text string) bool {
+// SetText sets the content of the field.
+func (t *TextField) SetText(text string) *TextField {
 	text = sanitize(text)
 	if string(t.runes) != text {
 		t.runes = []rune(text)
 		t.SetSelectionToEnd()
 		t.notifyOfModification()
-		return true
 	}
-	return false
+	return t
 }
 
 func (t *TextField) notifyOfModification() {
@@ -640,7 +610,7 @@ func (t *TextField) setSelection(start, end, anchor int) {
 		t.selectionStart = start
 		t.selectionEnd = end
 		t.selectionAnchor = anchor
-		t.forceShowUntil = time.Now().Add(t.BlinkRate)
+		t.forceShowUntil = time.Now().Add(t.blinkRate)
 		t.showCursor = true
 		t.MarkForRedraw()
 		t.ScrollIntoView()
@@ -696,7 +666,7 @@ func (t *TextField) autoScroll() {
 // ToSelectionIndex returns the rune index for the specified x-coordinate.
 func (t *TextField) ToSelectionIndex(x float64) int {
 	rect := t.ContentRect(false)
-	return t.Font.IndexForPosition(x-(rect.X+t.scrollOffset), string(t.runes))
+	return t.font.IndexForPosition(x-(rect.X+t.scrollOffset), string(t.runes))
 }
 
 // FromSelectionIndex returns a location in local coordinates for the
@@ -710,7 +680,7 @@ func (t *TextField) FromSelectionIndex(index int) geom.Point {
 		if index > length {
 			index = length
 		}
-		x += t.Font.PositionForIndex(index, string(t.runes))
+		x += t.font.PositionForIndex(index, string(t.runes))
 	}
 	return geom.Point{X: x, Y: top}
 }

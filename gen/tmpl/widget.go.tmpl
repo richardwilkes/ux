@@ -37,9 +37,9 @@ func ({{$inst}} *{{$name}}) Set{{firstToUpper .Name}}(value {{.Type}}) *{{$name}
 		value = {{.Default}}
 	}
 	{{- end}}
-	{{- if .MinOfZero}}
-	if value < 0 {
-		value = 0
+	{{- if .EnforceMin}}
+	if value < {{.EnforceMin}} {
+		value = {{.EnforceMin}}
 	}
 	{{- end}}
 	if {{$inst}}.{{.Name}} != value {

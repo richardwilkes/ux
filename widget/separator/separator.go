@@ -10,7 +10,7 @@ import (
 // Separator provides a simple vertical or horizontal separator line.
 type Separator struct {
 	ux.Panel
-	FillInk    draw.Ink
+	managed
 	horizontal bool
 }
 
@@ -26,10 +26,8 @@ func NewVertical() *Separator {
 
 // New creates a new horizontal or vertical separator line.
 func New(horizontal bool) *Separator {
-	s := &Separator{
-		FillInk:    draw.SeparatorColor,
-		horizontal: horizontal,
-	}
+	s := &Separator{horizontal: horizontal}
+	s.managed.initialize()
 	s.InitTypeAndID(s)
 	s.SetSizer(s.DefaultSizes)
 	s.DrawCallback = s.DefaultDraw
@@ -83,5 +81,5 @@ func (s *Separator) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 		rect.Width = 1
 	}
 	gc.Rect(rect)
-	gc.Fill(s.FillInk)
+	gc.Fill(s.fillInk)
 }

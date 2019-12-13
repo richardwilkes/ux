@@ -52,37 +52,28 @@ type Scrollable interface {
 // ScrollBar is a widget that controls scrolling.
 type ScrollBar struct {
 	ux.Panel
-	Target               Scrollable
-	BarSize              float64       // The height of a horizontal scrollbar or the width of a vertical scrollbar.
-	InitialRepeatDelay   time.Duration // The amount of time to wait before triggering the first repeating event.
-	RepeatDelay          time.Duration // The amount of time to wait before triggering a repeating event.
-	BackgroundInk        draw.Ink      // The background ink when enabled but not pressed or focused
-	FocusedBackgroundInk draw.Ink      // The background ink when enabled and focused
-	PressedBackgroundInk draw.Ink      // The background ink when enabled and pressed
-	EdgeInk              draw.Ink      // The ink to use on the edges
-	MarkInk              draw.Ink      // The ink to use for control marks.
-	DisabledMarkInk      draw.Ink      // The ink to use for control marks when disabled.
-	thumbDown            float64
-	sequence             int
-	pressed              scrollbarPart
-	horizontal           bool
+	managed
+	target     Scrollable
+	thumbDown  float64
+	sequence   int
+	pressed    scrollbarPart
+	horizontal bool
+}
+
+// NewHorizontal creates a new horizontal scrollbar.
+func NewHorizontal() *ScrollBar {
+	return New(true)
+}
+
+// NewVertical creates a new vertical scrollbar.
+func NewVertical() *ScrollBar {
+	return New(false)
 }
 
 // New creates a new scrollbar.
-func New(target Scrollable, horizontal bool) *ScrollBar {
-	s := &ScrollBar{
-		Target:               target,
-		BarSize:              16,
-		InitialRepeatDelay:   time.Millisecond * 250,
-		RepeatDelay:          time.Millisecond * 75,
-		BackgroundInk:        draw.ControlBackgroundInk,
-		FocusedBackgroundInk: draw.ControlFocusedBackgroundInk,
-		PressedBackgroundInk: draw.ControlPressedBackgroundInk,
-		EdgeInk:              draw.ControlEdgeAdjColor,
-		MarkInk:              draw.ControlTextColor,
-		DisabledMarkInk:      draw.DisabledControlTextColor,
-		horizontal:           horizontal,
-	}
+func New(horizontal bool) *ScrollBar {
+	s := &ScrollBar{horizontal: horizontal}
+	s.managed.initialize()
 	s.InitTypeAndID(s)
 	s.SetSizer(s.DefaultSizes)
 	s.DrawCallback = s.DefaultDraw
@@ -92,17 +83,31 @@ func New(target Scrollable, horizontal bool) *ScrollBar {
 	return s
 }
 
+// Target returns the scrollable target. May be nil.
+func (s *ScrollBar) Target() Scrollable {
+	return s.target
+}
+
+// SetTarget sets the scrollable target. May be nil.
+func (s *ScrollBar) SetTarget(target Scrollable) *ScrollBar {
+	if s.target != target {
+		s.target = target
+		s.MarkForRedraw()
+	}
+	return s
+}
+
 // DefaultSizes provides the default sizing.
 func (s *ScrollBar) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 	if s.horizontal {
-		pref.Width = s.BarSize * 2
-		pref.Height = s.BarSize
+		pref.Width = s.barSize * 2
+		pref.Height = s.barSize
 		max.Width = layout.DefaultMaxSize
-		max.Height = s.BarSize
+		max.Height = s.barSize
 	} else {
-		pref.Width = s.BarSize
-		pref.Height = s.BarSize * 2
-		max.Width = s.BarSize
+		pref.Width = s.barSize
+		pref.Height = s.barSize * 2
+		max.Width = s.barSize
 		max.Height = layout.DefaultMaxSize
 	}
 	if border := s.Border(); border != nil {
@@ -117,11 +122,11 @@ func (s *ScrollBar) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 func (s *ScrollBar) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
 	rect := s.ContentRect(false)
 	if s.horizontal {
-		rect.Height = s.BarSize
+		rect.Height = s.barSize
 	} else {
-		rect.Width = s.BarSize
+		rect.Width = s.barSize
 	}
-	widget.DrawRectBase(gc, rect, s.currentBackgroundInk(none), s.EdgeInk)
+	widget.DrawRectBase(gc, rect, s.currentBackgroundInk(none), s.edgeInk)
 	s.drawLineButton(gc, lineDown)
 	if s.pressed == pageUp || s.pressed == pageDown {
 		rect = s.partRect(s.pressed)
@@ -143,7 +148,7 @@ func (s *ScrollBar) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 
 func (s *ScrollBar) drawLineButton(gc draw.Context, linePart scrollbarPart) {
 	rect := s.partRect(linePart)
-	widget.DrawRectBase(gc, rect, s.currentBackgroundInk(linePart), s.EdgeInk)
+	widget.DrawRectBase(gc, rect, s.currentBackgroundInk(linePart), s.edgeInk)
 	rect.InsetUniform(1.5)
 	if s.horizontal {
 		triHeight := rect.Width * 0.75
@@ -178,7 +183,7 @@ func (s *ScrollBar) drawLineButton(gc draw.Context, linePart scrollbarPart) {
 
 func (s *ScrollBar) drawThumb(gc draw.Context) {
 	if rect := s.partRect(thumb); !rect.IsEmpty() {
-		widget.DrawRectBase(gc, rect, s.currentBackgroundInk(thumb), s.EdgeInk)
+		widget.DrawRectBase(gc, rect, s.currentBackgroundInk(thumb), s.edgeInk)
 		var v0, v1, v2 float64
 		if s.horizontal {
 			v0 = math.Floor(rect.X + rect.Width/2)
@@ -209,31 +214,31 @@ func (s *ScrollBar) drawThumb(gc draw.Context) {
 func (s *ScrollBar) currentBackgroundInk(which scrollbarPart) draw.Ink {
 	switch {
 	case which != none && s.pressed == which:
-		return s.PressedBackgroundInk
+		return s.pressedBackgroundInk
 	case s.Focused():
-		return s.FocusedBackgroundInk
+		return s.focusedBackgroundInk
 	default:
-		return s.BackgroundInk
+		return s.backgroundInk
 	}
 }
 
 func (s *ScrollBar) currentMarkColor(which scrollbarPart) draw.Ink {
 	if s.partEnabled(which) {
-		return s.MarkInk
+		return s.markInk
 	}
-	return s.DisabledMarkInk
+	return s.disabledMarkInk
 }
 
 func (s *ScrollBar) partEnabled(which scrollbarPart) bool {
-	if s.Enabled() && s.Target != nil {
+	if s.Enabled() && s.target != nil {
 		switch which {
 		case lineUp, pageUp:
-			return s.Target.ScrolledPosition(s.horizontal) > 0
+			return s.target.ScrolledPosition(s.horizontal) > 0
 		case lineDown, pageDown:
-			return s.Target.ScrolledPosition(s.horizontal) < s.Target.ContentSize(s.horizontal)-s.Target.VisibleSize(s.horizontal)
+			return s.target.ScrolledPosition(s.horizontal) < s.target.ContentSize(s.horizontal)-s.target.VisibleSize(s.horizontal)
 		case thumb:
-			pos := s.Target.ScrolledPosition(s.horizontal)
-			return pos > 0 || pos < s.Target.ContentSize(s.horizontal)-s.Target.VisibleSize(s.horizontal)
+			pos := s.target.ScrolledPosition(s.horizontal)
+			return pos > 0 || pos < s.target.ContentSize(s.horizontal)-s.target.VisibleSize(s.horizontal)
 		default:
 		}
 	}
@@ -244,20 +249,20 @@ func (s *ScrollBar) partRect(which scrollbarPart) geom.Rect {
 	var rect geom.Rect
 	switch which {
 	case thumb:
-		if s.Target != nil {
-			content := s.Target.ContentSize(s.horizontal)
-			visible := s.Target.VisibleSize(s.horizontal)
+		if s.target != nil {
+			content := s.target.ContentSize(s.horizontal)
+			visible := s.target.VisibleSize(s.horizontal)
 			if content-visible > 0 {
-				pos := s.Target.ScrolledPosition(s.horizontal)
+				pos := s.target.ScrolledPosition(s.horizontal)
 				full := s.ContentRect(false)
 				if s.horizontal {
-					full.X += s.BarSize - 1
-					full.Width -= s.BarSize*2 - 2
-					full.Height = s.BarSize
+					full.X += s.barSize - 1
+					full.Width -= s.barSize*2 - 2
+					full.Height = s.barSize
 					if full.Width > 0 {
 						scale := full.Width / content
 						visible *= scale
-						min := s.BarSize * 0.75
+						min := s.barSize * 0.75
 						if visible < min {
 							scale = (full.Width + visible - min) / content
 							visible = min
@@ -268,13 +273,13 @@ func (s *ScrollBar) partRect(which scrollbarPart) geom.Rect {
 						rect = full
 					}
 				} else {
-					full.Y += s.BarSize - 1
-					full.Height -= s.BarSize*2 - 2
-					full.Width = s.BarSize
+					full.Y += s.barSize - 1
+					full.Height -= s.barSize*2 - 2
+					full.Width = s.barSize
 					if full.Height > 0 {
 						scale := full.Height / content
 						visible *= scale
-						min := s.BarSize * 0.75
+						min := s.barSize * 0.75
 						if visible < min {
 							scale = (full.Height + visible - min) / content
 							visible = min
@@ -289,17 +294,17 @@ func (s *ScrollBar) partRect(which scrollbarPart) geom.Rect {
 		}
 	case lineUp:
 		rect = s.ContentRect(false)
-		rect.Width = s.BarSize
-		rect.Height = s.BarSize
+		rect.Width = s.barSize
+		rect.Height = s.barSize
 	case lineDown:
 		rect = s.ContentRect(false)
 		if s.horizontal {
-			rect.X += rect.Width - s.BarSize
+			rect.X += rect.Width - s.barSize
 		} else {
-			rect.Y += rect.Height - s.BarSize
+			rect.Y += rect.Height - s.barSize
 		}
-		rect.Width = s.BarSize
-		rect.Height = s.BarSize
+		rect.Width = s.barSize
+		rect.Height = s.barSize
 	case pageUp:
 		rect = s.partRect(lineUp)
 		thumb := s.partRect(thumb)
@@ -331,10 +336,10 @@ func (s *ScrollBar) partRect(which scrollbarPart) geom.Rect {
 // ScrollBar to the specified value. The value will be clipped to the
 // available range. If no target has been set, then nothing will happen.
 func (s *ScrollBar) SetScrolledPosition(position float64) {
-	if s.Target != nil {
-		position = math.Max(math.Min(position, s.Target.ContentSize(s.horizontal)-s.Target.VisibleSize(s.horizontal)), 0)
-		if s.Target.ScrolledPosition(s.horizontal) != position {
-			s.Target.SetScrolledPosition(s.horizontal, position)
+	if s.target != nil {
+		position = math.Max(math.Min(position, s.target.ContentSize(s.horizontal)-s.target.VisibleSize(s.horizontal)), 0)
+		if s.target.ScrolledPosition(s.horizontal) != position {
+			s.target.SetScrolledPosition(s.horizontal, position)
 			s.MarkForRedraw()
 		}
 	}
@@ -354,7 +359,7 @@ func (s *ScrollBar) DefaultMouseDown(where geom.Point, button, clickCount int, m
 				s.thumbDown = where.Y - s.partRect(what).Y
 			}
 		case lineUp, lineDown, pageUp, pageDown:
-			s.scheduleRepeat(what, s.InitialRepeatDelay)
+			s.scheduleRepeat(what, s.initialRepeatDelay)
 		}
 		s.MarkForRedraw()
 	}
@@ -376,19 +381,19 @@ func (s *ScrollBar) scheduleRepeat(which scrollbarPart, delay time.Duration) {
 		current := s.sequence
 		switch which {
 		case lineUp:
-			s.SetScrolledPosition(s.Target.ScrolledPosition(s.horizontal) - math.Abs(s.Target.ScrollAmount(s.horizontal, true, false)))
+			s.SetScrolledPosition(s.target.ScrolledPosition(s.horizontal) - math.Abs(s.target.ScrollAmount(s.horizontal, true, false)))
 		case lineDown:
-			s.SetScrolledPosition(s.Target.ScrolledPosition(s.horizontal) + math.Abs(s.Target.ScrollAmount(s.horizontal, false, false)))
+			s.SetScrolledPosition(s.target.ScrolledPosition(s.horizontal) + math.Abs(s.target.ScrollAmount(s.horizontal, false, false)))
 		case pageUp:
-			s.SetScrolledPosition(s.Target.ScrolledPosition(s.horizontal) - math.Abs(s.Target.ScrollAmount(s.horizontal, true, true)))
+			s.SetScrolledPosition(s.target.ScrolledPosition(s.horizontal) - math.Abs(s.target.ScrollAmount(s.horizontal, true, true)))
 		case pageDown:
-			s.SetScrolledPosition(s.Target.ScrolledPosition(s.horizontal) + math.Abs(s.Target.ScrollAmount(s.horizontal, false, true)))
+			s.SetScrolledPosition(s.target.ScrolledPosition(s.horizontal) + math.Abs(s.target.ScrollAmount(s.horizontal, false, true)))
 		default:
 			return
 		}
 		ux.InvokeAfter(func() {
 			if current == s.sequence && s.pressed == which {
-				s.scheduleRepeat(which, s.RepeatDelay)
+				s.scheduleRepeat(which, s.repeatDelay)
 			}
 		}, delay)
 	}
@@ -410,18 +415,18 @@ func (s *ScrollBar) DefaultMouseDrag(where geom.Point, button int, mod keys.Modi
 
 func (s *ScrollBar) thumbScale() float64 {
 	var scale float64 = 1
-	content := s.Target.ContentSize(s.horizontal)
-	visible := s.Target.VisibleSize(s.horizontal)
+	content := s.target.ContentSize(s.horizontal)
+	visible := s.target.VisibleSize(s.horizontal)
 	if content-visible > 0 {
 		var size float64
-		min := s.BarSize * 0.75
+		min := s.barSize * 0.75
 		rect := s.ContentRect(false)
 		if s.horizontal {
 			size = rect.Width
 		} else {
 			size = rect.Height
 		}
-		size -= s.BarSize*2 + 2
+		size -= s.barSize*2 + 2
 		if size > 0 {
 			scale = size / content
 			visible *= scale

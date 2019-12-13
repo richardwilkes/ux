@@ -137,10 +137,11 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 	addSeparator(content)
 
 	if title == "Demo #1" {
-		if wv, err := browser.New(wnd); err == nil {
-			flex.NewData().HAlign(align.Fill).VAlign(align.Fill).HGrab(true).VGrab(true).SizeHint(geom.Size{Width: 1024, Height: 768}).Apply(wv)
-			wv.LoadURL("https://gurpscharactersheet.com")
-			content.AddChild(wv.AsPanel())
+		var b *browser.Browser
+		if b, err = browser.New(wnd); err == nil {
+			flex.NewData().HAlign(align.Fill).VAlign(align.Fill).HGrab(true).VGrab(true).SizeHint(geom.Size{Width: 1024, Height: 768}).Apply(b)
+			b.LoadURL("https://gurpscharactersheet.com")
+			content.AddChild(b.AsPanel())
 		}
 	} else {
 		imgPanel := label.New().SetImage(mountainsImg)
@@ -159,7 +160,7 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 			avoid.Height = 32
 			return avoid
 		}
-		scrollArea := scrollarea.New(imgPanel.AsPanel(), behavior.Unmodified)
+		scrollArea := scrollarea.New().SetContent(imgPanel.AsPanel(), behavior.Unmodified)
 		flex.NewData().HAlign(align.Fill).VAlign(align.Fill).HGrab(true).VGrab(true).Apply(scrollArea)
 		content.AddChild(scrollArea.AsPanel())
 	}
@@ -174,7 +175,7 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 }
 
 func createListPanel() *ux.Panel {
-	lst := list.New(&label.CellFactory{})
+	lst := list.New()
 	lst.Append(
 		"One",
 		"Two",
@@ -206,7 +207,7 @@ func createListPanel() *ux.Panel {
 	}
 	_, prefSize, _ := lst.Sizes(geom.Size{})
 	lst.SetFrameRect(geom.Rect{Size: prefSize})
-	scroller := scrollarea.New(lst.AsPanel(), behavior.Fill)
+	scroller := scrollarea.New().SetContent(lst.AsPanel(), behavior.Fill)
 	flex.NewData().HAlign(align.Fill).VAlign(align.Fill).HGrab(true).VGrab(true).Apply(scroller)
 	return scroller.AsPanel()
 }
@@ -304,7 +305,7 @@ func createRadioButtonsPanel() *ux.Panel {
 }
 
 func createRadioButton(title string, panel *ux.Panel, group *selectable.Group) *radiobutton.RadioButton {
-	rb := radiobutton.NewWithText(title)
+	rb := radiobutton.New().SetText(title)
 	rb.ClickCallback = func() { jot.Infof("%v was clicked.", rb) }
 	rb.Tooltip = tooltip.NewWithText(fmt.Sprintf("This is the tooltip for %v", rb))
 	panel.AddChild(rb.AsPanel())
@@ -341,9 +342,8 @@ func createTextFieldsPanel() *ux.Panel {
 	flex.New().Apply(panel)
 	field := createTextField("First Text Field", panel)
 	createTextField("Second Text Field (disabled)", panel).SetEnabled(false)
-	createTextField("", panel).Watermark = "Watermarked"
-	field = createTextField("", panel)
-	field.Watermark = "Enter only numbers"
+	createTextField("", panel).SetWatermark("Watermarked")
+	field = createTextField("", panel).SetWatermark("Enter only numbers")
 	field.ValidateCallback = func() bool {
 		for _, r := range field.Text() {
 			if !unicode.IsDigit(r) {

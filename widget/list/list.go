@@ -10,37 +10,30 @@ import (
 	"github.com/richardwilkes/ux/ids"
 	"github.com/richardwilkes/ux/keys"
 	"github.com/richardwilkes/ux/layout"
-	"github.com/richardwilkes/ux/widget"
 )
 
 // List provides a control that allows the user to select from a list of
 // items, represented by cells.
 type List struct {
 	ux.Panel
-	DoubleClickCallback    func()
-	NewSelectionCallback   func()
-	factory                widget.CellFactory
-	rows                   []interface{}
-	Selection              *xmath.BitSet
-	savedSelection         *xmath.BitSet
-	BackgroundInk          draw.Ink
-	AlternateBackgroundInk draw.Ink
-	SelectedBackgroundInk  draw.Ink
-	anchor                 int
-	pressed                bool
+	managed
+	DoubleClickCallback  func()
+	NewSelectionCallback func()
+	rows                 []interface{}
+	Selection            *xmath.BitSet
+	savedSelection       *xmath.BitSet
+	anchor               int
+	pressed              bool
 }
 
 // New creates a new List control.
-func New(factory widget.CellFactory) *List {
+func New() *List {
 	l := &List{
-		factory:                factory,
-		Selection:              &xmath.BitSet{},
-		savedSelection:         &xmath.BitSet{},
-		BackgroundInk:          draw.TextBackgroundColor,
-		AlternateBackgroundInk: draw.TextAlternateBackgroundColor,
-		SelectedBackgroundInk:  draw.ControlAccentColor,
-		anchor:                 -1,
+		Selection:      &xmath.BitSet{},
+		savedSelection: &xmath.BitSet{},
+		anchor:         -1,
 	}
+	l.managed.initialize()
 	l.InitTypeAndID(l)
 	l.SetFocusable(true)
 	l.SetSizer(l.DefaultSizes)
@@ -144,11 +137,11 @@ func (l *List) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) 
 			var ink draw.Ink
 			switch {
 			case selected:
-				ink = l.SelectedBackgroundInk
+				ink = l.selectedBackgroundInk
 			case index%2 == 0:
-				ink = l.BackgroundInk
+				ink = l.backgroundInk
 			default:
-				ink = l.AlternateBackgroundInk
+				ink = l.alternateBackgroundInk
 			}
 			gc.Rect(geom.Rect{Point: geom.Point{X: rect.X, Y: cellRect.Y}, Size: geom.Size{Width: rect.Width, Height: cellRect.Height}})
 			gc.Fill(ink)

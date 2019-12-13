@@ -18,20 +18,11 @@ import (
 // PopupMenu represents a clickable button that displays a menu of choices.
 type PopupMenu struct {
 	ux.Panel
-	SelectionCallback    func()
-	items                []interface{}
-	Font                 *draw.Font // The font to use
-	BackgroundInk        draw.Ink   // The background ink when enabled but not pressed or focused
-	FocusedBackgroundInk draw.Ink   // The background ink when enabled and focused
-	PressedBackgroundInk draw.Ink   // The background ink when enabled and pressed
-	EdgeInk              draw.Ink   // The ink to use on the edges
-	TextInk              draw.Ink   // The text ink to use
-	PressedTextInk       draw.Ink   // The text ink when enabled and pressed
-	CornerRadius         float64    // The amount of rounding to use on the corners
-	HMargin              float64    // The margin on the left and right side of the content
-	VMargin              float64    // The margin on the top and bottom of the content
-	selectedIndex        int
-	Pressed              bool
+	managed
+	SelectionCallback func()
+	items             []interface{}
+	selectedIndex     int
+	Pressed           bool
 }
 
 type separationMarker struct {
@@ -39,18 +30,8 @@ type separationMarker struct {
 
 // New creates a new PopupMenu.
 func New() *PopupMenu {
-	p := &PopupMenu{
-		Font:                 draw.SystemFont,
-		BackgroundInk:        draw.ControlBackgroundInk,
-		FocusedBackgroundInk: draw.ControlFocusedBackgroundInk,
-		PressedBackgroundInk: draw.ControlPressedBackgroundInk,
-		EdgeInk:              draw.ControlEdgeAdjColor,
-		TextInk:              draw.ControlTextColor,
-		PressedTextInk:       draw.AlternateSelectedControlTextColor,
-		CornerRadius:         4,
-		HMargin:              8,
-		VMargin:              1,
-	}
+	p := &PopupMenu{}
+	p.managed.initialize()
 	p.InitTypeAndID(p)
 	p.SetFocusable(true)
 	p.SetSizer(p.DefaultSizes)
@@ -64,12 +45,12 @@ func New() *PopupMenu {
 
 // DefaultSizes provides the default sizing.
 func (p *PopupMenu) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
-	pref = widget.LabelSize("M", p.Font, nil, 0, 0)
+	pref = widget.LabelSize("M", p.font, nil, 0, 0)
 	for _, one := range p.items {
 		switch one.(type) {
 		case *separationMarker:
 		default:
-			size := widget.LabelSize(fmt.Sprintf("%v", one), p.Font, nil, 0, 0)
+			size := widget.LabelSize(fmt.Sprintf("%v", one), p.font, nil, 0, 0)
 			if pref.Width < size.Width {
 				pref.Width = size.Width
 			}
@@ -81,8 +62,8 @@ func (p *PopupMenu) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 	if border := p.Border(); border != nil {
 		pref.AddInsets(border.Insets())
 	}
-	pref.Height += p.VMargin*2 + 2
-	pref.Width += p.HMargin*2 + 2 + pref.Height*0.75
+	pref.Height += p.vMargin*2 + 2
+	pref.Width += p.hMargin*2 + 2 + pref.Height*0.75
 	pref.GrowToInteger()
 	pref.ConstrainForHint(hint)
 	max.Width = math.Max(layout.DefaultMaxSize, pref.Width)
@@ -96,17 +77,17 @@ func (p *PopupMenu) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 		gc.SetOpacity(0.33)
 	}
 	rect := p.ContentRect(false)
-	widget.DrawRoundedRectBase(gc, rect, p.CornerRadius, p.currentBackgroundInk(), p.EdgeInk)
+	widget.DrawRoundedRectBase(gc, rect, p.cornerRadius, p.currentBackgroundInk(), p.edgeInk)
 	rect.InsetUniform(1.5)
-	rect.X += p.HMargin
-	rect.Y += p.VMargin
-	rect.Width -= p.HMargin * 2
-	rect.Height -= p.VMargin * 2
+	rect.X += p.hMargin
+	rect.Y += p.vMargin
+	rect.Width -= p.hMargin * 2
+	rect.Height -= p.vMargin * 2
 	triWidth := rect.Height * 0.75
 	triHeight := triWidth / 2
 	rect.Width -= triWidth
-	widget.DrawLabel(gc, rect, align.Start, align.Middle, p.Text(), p.Font, p.currentTextInk(), nil, 0, 0, p.Enabled())
-	rect.Width += triWidth + p.HMargin/2
+	widget.DrawLabel(gc, rect, align.Start, align.Middle, p.Text(), p.font, p.currentTextInk(), nil, 0, 0, p.Enabled())
+	rect.Width += triWidth + p.hMargin/2
 	gc.MoveTo(rect.X+rect.Width, rect.Y+(rect.Height-triHeight)/2)
 	gc.LineTo(rect.X+rect.Width-triWidth, rect.Y+(rect.Height-triHeight)/2)
 	gc.LineTo(rect.X+rect.Width-triWidth/2, rect.Y+(rect.Height-triHeight)/2+triHeight)
@@ -130,19 +111,19 @@ func (p *PopupMenu) Text() string {
 func (p *PopupMenu) currentBackgroundInk() draw.Ink {
 	switch {
 	case p.Pressed:
-		return p.PressedBackgroundInk
+		return p.pressedBackgroundInk
 	case p.Focused():
-		return p.FocusedBackgroundInk
+		return p.focusedBackgroundInk
 	default:
-		return p.BackgroundInk
+		return p.backgroundInk
 	}
 }
 
 func (p *PopupMenu) currentTextInk() draw.Ink {
 	if p.Pressed || p.Focused() {
-		return p.PressedTextInk
+		return p.pressedTextInk
 	}
-	return p.TextInk
+	return p.textInk
 }
 
 // Click performs any animation associated with a click and triggers the
@@ -178,13 +159,15 @@ func (p *PopupMenu) addItemToMenu(m *menu.Menu, index int) bool {
 }
 
 // AddItem appends an item to the end of the PopupMenu.
-func (p *PopupMenu) AddItem(item interface{}) {
+func (p *PopupMenu) AddItem(item interface{}) *PopupMenu {
 	p.items = append(p.items, item)
+	return p
 }
 
 // AddSeparator adds a separator to the end of the PopupMenu.
-func (p *PopupMenu) AddSeparator() {
+func (p *PopupMenu) AddSeparator() *PopupMenu {
 	p.items = append(p.items, &separationMarker{})
+	return p
 }
 
 // IndexOfItem returns the index of the specified item. -1 will be returned if
@@ -199,12 +182,13 @@ func (p *PopupMenu) IndexOfItem(item interface{}) int {
 }
 
 // RemoveItem from the PopupMenu.
-func (p *PopupMenu) RemoveItem(item interface{}) {
+func (p *PopupMenu) RemoveItem(item interface{}) *PopupMenu {
 	p.RemoveItemAt(p.IndexOfItem(item))
+	return p
 }
 
 // RemoveItemAt the specified index from the PopupMenu.
-func (p *PopupMenu) RemoveItemAt(index int) {
+func (p *PopupMenu) RemoveItemAt(index int) *PopupMenu {
 	if index >= 0 {
 		length := len(p.items)
 		if index < length {
@@ -225,6 +209,7 @@ func (p *PopupMenu) RemoveItemAt(index int) {
 			p.items = p.items[:length]
 		}
 	}
+	return p
 }
 
 // Selected returns the currently selected item or nil.
@@ -241,12 +226,13 @@ func (p *PopupMenu) SelectedIndex() int {
 }
 
 // Select an item.
-func (p *PopupMenu) Select(item interface{}) {
+func (p *PopupMenu) Select(item interface{}) *PopupMenu {
 	p.SelectIndex(p.IndexOfItem(item))
+	return p
 }
 
 // SelectIndex selects an item by its index.
-func (p *PopupMenu) SelectIndex(index int) {
+func (p *PopupMenu) SelectIndex(index int) *PopupMenu {
 	if index != p.selectedIndex && index >= 0 && index < len(p.items) {
 		p.selectedIndex = index
 		p.MarkForRedraw()
@@ -254,6 +240,7 @@ func (p *PopupMenu) SelectIndex(index int) {
 			p.SelectionCallback()
 		}
 	}
+	return p
 }
 
 // DefaultMouseDown provides the default mouse down handling.

@@ -5,7 +5,6 @@ import (
 
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
-	"github.com/richardwilkes/ux/border"
 	"github.com/richardwilkes/ux/draw"
 	"github.com/richardwilkes/ux/keys"
 	"github.com/richardwilkes/ux/widget/scrollarea/behavior"
@@ -16,27 +15,23 @@ import (
 // a scrollable viewport.
 type ScrollArea struct {
 	ux.Panel
-	HBar          *scrollbar.ScrollBar
-	VBar          *scrollbar.ScrollBar
-	view          *ux.Panel
-	content       *ux.Panel
-	FocusedBorder border.Border // The border to use when focused.
-	BackgroundInk draw.Ink
-	behavior      behavior.Behavior
+	managed
+	hBar     *scrollbar.ScrollBar
+	vBar     *scrollbar.ScrollBar
+	view     *ux.Panel
+	content  *ux.Panel
+	behavior behavior.Behavior
 }
 
-// New creates a new ScrollArea with the specified panel as its
-// content. The content may be nil.
-func New(content *ux.Panel, behave behavior.Behavior) *ScrollArea {
-	s := &ScrollArea{
-		FocusedBorder: border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(2), true),
-		BackgroundInk: draw.TextBackgroundColor,
-	}
+// New creates a new, empty ScrollArea.
+func New() *ScrollArea {
+	s := &ScrollArea{}
+	s.managed.initialize()
 	s.InitTypeAndID(s)
-	s.SetBorder(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false))
+	s.SetBorder(s.unfocusedBorder)
 	s.view = ux.NewPanel()
-	s.HBar = scrollbar.New(s, true)
-	s.VBar = scrollbar.New(s, false)
+	s.hBar = scrollbar.New(true).SetTarget(s)
+	s.vBar = scrollbar.New(false).SetTarget(s)
 	s.AddChild(s.view)
 	s.SetFocusable(true)
 	s.SetLayout(&scrollAreaLayout{scrollArea: s})
@@ -47,14 +42,16 @@ func New(content *ux.Panel, behave behavior.Behavior) *ScrollArea {
 	s.KeyDownCallback = s.DefaultKeyDown
 	s.FrameChangeInChildHierarchyCallback = s.DefaultFrameChangeInChildHierarchy
 	s.ScrollRectIntoViewCallback = s.DefaultScrollRectIntoView
-	if content != nil {
-		s.SetContent(content, behave)
-	}
 	return s
 }
 
+// Content returns the content panel. May be nil.
+func (s *ScrollArea) Content() *ux.Panel {
+	return s.content
+}
+
 // SetContent sets the content panel, replacing any existing one.
-func (s *ScrollArea) SetContent(content *ux.Panel, behave behavior.Behavior) {
+func (s *ScrollArea) SetContent(content *ux.Panel, behave behavior.Behavior) *ScrollArea {
 	if s.content != nil {
 		s.content.RemoveFromParent()
 	}
@@ -64,67 +61,69 @@ func (s *ScrollArea) SetContent(content *ux.Panel, behave behavior.Behavior) {
 		s.view.AddChildAtIndex(s.content, 0)
 	}
 	s.MarkForLayoutAndRedraw()
+	return s
 }
 
 // DefaultDraw provides the default drawing.
 func (s *ScrollArea) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
 	gc.Rect(dirty)
-	gc.Fill(s.BackgroundInk)
+	gc.Fill(s.backgroundInk)
 }
 
 // DefaultMouseWheel provides the default mouse wheel handling.
 func (s *ScrollArea) DefaultMouseWheel(where, delta geom.Point, mod keys.Modifiers) bool {
 	if delta.Y != 0 {
-		s.VBar.SetScrolledPosition(s.ScrolledPosition(false) - delta.Y*s.ScrollAmount(false, delta.Y > 0, false))
+		s.vBar.SetScrolledPosition(s.ScrolledPosition(false) - delta.Y*s.ScrollAmount(false, delta.Y > 0, false))
 	}
 	if delta.X != 0 {
-		s.HBar.SetScrolledPosition(s.ScrolledPosition(true) - delta.X*s.ScrollAmount(true, delta.X > 0, true))
+		s.hBar.SetScrolledPosition(s.ScrolledPosition(true) - delta.X*s.ScrollAmount(true, delta.X > 0, true))
 	}
 	return true
 }
 
 // DefaultFocusGained provides the default focus gained handling.
 func (s *ScrollArea) DefaultFocusGained() {
-	s.view.SetBorder(s.FocusedBorder)
-	s.view.MarkForRedraw()
+	s.SetBorder(s.focusedBorder)
+	s.MarkForRedraw()
 }
 
 // DefaultFocusLost provides the default focus lost handling.
 func (s *ScrollArea) DefaultFocusLost() {
-	s.view.SetBorder(nil)
-	s.view.MarkForRedraw()
+	s.SetBorder(s.unfocusedBorder)
+	s.MarkForRedraw()
 }
 
 // DefaultKeyDown provides the default key down handling.
 func (s *ScrollArea) DefaultKeyDown(keyCode int, ch rune, mod keys.Modifiers, repeat bool) bool {
 	switch keyCode {
 	case keys.Up.Code, keys.NumpadUp.Code:
-		s.VBar.SetScrolledPosition(s.ScrolledPosition(false) - s.ScrollAmount(false, true, false))
+		s.vBar.SetScrolledPosition(s.ScrolledPosition(false) - s.ScrollAmount(false, true, false))
 	case keys.Down.Code, keys.NumpadDown.Code:
-		s.VBar.SetScrolledPosition(s.ScrolledPosition(false) + s.ScrollAmount(false, false, false))
+		s.vBar.SetScrolledPosition(s.ScrolledPosition(false) + s.ScrollAmount(false, false, false))
 	case keys.Left.Code, keys.NumpadLeft.Code:
-		s.HBar.SetScrolledPosition(s.ScrolledPosition(true) - s.ScrollAmount(true, true, false))
+		s.hBar.SetScrolledPosition(s.ScrolledPosition(true) - s.ScrollAmount(true, true, false))
 	case keys.Right.Code, keys.NumpadRight.Code:
-		s.HBar.SetScrolledPosition(s.ScrolledPosition(true) + s.ScrollAmount(true, false, false))
+		s.hBar.SetScrolledPosition(s.ScrolledPosition(true) + s.ScrollAmount(true, false, false))
 	case keys.Home.Code, keys.NumpadHome.Code:
-		s.barForMod(mod).SetScrolledPosition(0)
+		s.ScrollBar(mod.ShiftDown()).SetScrolledPosition(0)
 	case keys.End.Code, keys.NumpadEnd.Code:
-		s.barForMod(mod).SetScrolledPosition(s.ContentSize(mod.ShiftDown()))
+		s.ScrollBar(mod.ShiftDown()).SetScrolledPosition(s.ContentSize(mod.ShiftDown()))
 	case keys.PageUp.Code, keys.NumpadPageUp.Code:
-		s.barForMod(mod).SetScrolledPosition(s.ScrolledPosition(mod.ShiftDown()) - s.ScrollAmount(mod.ShiftDown(), true, true))
+		s.ScrollBar(mod.ShiftDown()).SetScrolledPosition(s.ScrolledPosition(mod.ShiftDown()) - s.ScrollAmount(mod.ShiftDown(), true, true))
 	case keys.PageDown.Code, keys.NumpadPageDown.Code:
-		s.barForMod(mod).SetScrolledPosition(s.ScrolledPosition(mod.ShiftDown()) + s.ScrollAmount(mod.ShiftDown(), false, true))
+		s.ScrollBar(mod.ShiftDown()).SetScrolledPosition(s.ScrolledPosition(mod.ShiftDown()) + s.ScrollAmount(mod.ShiftDown(), false, true))
 	default:
 		return false
 	}
 	return true
 }
 
-func (s *ScrollArea) barForMod(mod keys.Modifiers) *scrollbar.ScrollBar {
-	if mod.ShiftDown() {
-		return s.HBar
+// ScrollBar returns the scrollbar for the given axis.
+func (s *ScrollArea) ScrollBar(horizontal bool) *scrollbar.ScrollBar {
+	if horizontal {
+		return s.hBar
 	}
-	return s.VBar
+	return s.vBar
 }
 
 // DefaultFrameChangeInChildHierarchy provides the default frame change in
@@ -209,15 +208,15 @@ func (s *ScrollArea) ContentSize(horizontal bool) float64 {
 // DefaultScrollRectIntoView provides the default scroll rect into view
 // handling.
 func (s *ScrollArea) DefaultScrollRectIntoView(rect geom.Rect) bool {
-	viewRect := s.view.FrameRect()
+	viewRect := s.view.ContentRect(true)
 	hAdj := computeScrollAdj(rect.X, viewRect.X, rect.Y+rect.Width, viewRect.X+viewRect.Width)
 	vAdj := computeScrollAdj(rect.Y, viewRect.Y, rect.Y+rect.Height, viewRect.Y+viewRect.Height)
 	if hAdj != 0 || vAdj != 0 {
 		if hAdj != 0 {
-			s.HBar.SetScrolledPosition(s.ScrolledPosition(true) + hAdj)
+			s.hBar.SetScrolledPosition(s.ScrolledPosition(true) + hAdj)
 		}
 		if vAdj != 0 {
-			s.VBar.SetScrolledPosition(s.ScrolledPosition(false) + vAdj)
+			s.vBar.SetScrolledPosition(s.ScrolledPosition(false) + vAdj)
 		}
 		return true
 	}
