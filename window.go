@@ -297,12 +297,27 @@ func (w *Window) FrameRect() geom.Rect {
 func (w *Window) SetFrameRect(rect geom.Rect) {
 	if w.IsValid() {
 		current := w.ContentRect()
-		w.osSetFrameRect(rect)
+		w.osSetFrameRect(WindowFrameRectForContentRect(w.adjustContentRectForMinMax(WindowContentRectForFrameRect(rect, w.style)), w.style))
 		adjusted := w.ContentRect()
 		if current.Size != adjusted.Size {
 			w.ValidateLayout()
 		}
 	}
+}
+
+func (w *Window) adjustContentRectForMinMax(rect geom.Rect) geom.Rect {
+	min, _, max := w.root.Sizes(geom.Size{})
+	if rect.Width < min.Width {
+		rect.Width = min.Width
+	} else if rect.Width > max.Width {
+		rect.Width = max.Width
+	}
+	if rect.Height < min.Height {
+		rect.Height = min.Height
+	} else if rect.Height > max.Height {
+		rect.Height = max.Height
+	}
+	return rect
 }
 
 // ContentRect returns the boundaries in display coordinates of the window's

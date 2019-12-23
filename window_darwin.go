@@ -40,7 +40,7 @@ func osWindowContentRectForFrameRect(frame geom.Rect, styleMask StyleMask) geom.
 	return geom.Rect{
 		Point: geom.Point{
 			X: x,
-			Y: y,
+			Y: screenHeight - (y + height),
 		},
 		Size: geom.Size{
 			Width:  width,
@@ -55,7 +55,7 @@ func osWindowFrameRectForContentRect(content geom.Rect, styleMask StyleMask) geo
 	return geom.Rect{
 		Point: geom.Point{
 			X: x,
-			Y: y,
+			Y: screenHeight - (y + height),
 		},
 		Size: geom.Size{
 			Width:  width,
@@ -184,7 +184,13 @@ type windowDelegate struct {
 
 func (d *windowDelegate) WindowDidResize(wnd *ns.Window) {
 	if w, ok := nativeWindowMap[wnd.Native()]; ok && w.wnd != nil {
-		w.ValidateLayout()
+		current := w.ContentRect()
+		adjusted := w.adjustContentRectForMinMax(current)
+		if adjusted != current {
+			w.SetContentRect(adjusted)
+		} else {
+			w.ValidateLayout()
+		}
 	}
 }
 
