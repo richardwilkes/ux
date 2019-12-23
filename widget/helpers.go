@@ -76,7 +76,6 @@ func DrawLabel(gc draw.Context, rect geom.Rect, hAlign, vAlign align.Alignment, 
 	var size, txtSize geom.Size
 	if text != "" {
 		txtSize = font.Extents(text)
-		txtSize.GrowToInteger()
 		size = txtSize
 	}
 	adjustLabelSizeForImage(text, image, imgSide, imgGap, &size)
