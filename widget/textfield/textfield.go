@@ -167,6 +167,9 @@ func (t *TextField) blink() {
 // DefaultFocusGained provides the default focus gained handling.
 func (t *TextField) DefaultFocusGained() {
 	t.SetBorder(t.focusedBorder)
+	if !t.HasSelectionRange() {
+		t.SelectAll()
+	}
 	t.showCursor = true
 	t.MarkForRedraw()
 }
