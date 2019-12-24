@@ -19,6 +19,7 @@ var (
 	GridColor                                  = &DynamicColor{Color: RGB(204, 204, 204)}
 	HeaderTextColor                            = &DynamicColor{Color: ARGB(0.847059, 0, 0, 0)}
 	HighlightColor                             = &DynamicColor{Color: White}
+	InvalidBackgroundColor                     = &DynamicColor{Color: RGB(255, 204, 204)}
 	KeyboardFocusIndicatorColor                = &DynamicColor{Color: ARGB(0.247059, 0, 103, 244)}
 	LabelColor                                 = &DynamicColor{Color: ARGB(0.847059, 0, 0, 0)}
 	LinkColor                                  = &DynamicColor{Color: RGB(0, 104, 218)}
