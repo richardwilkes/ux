@@ -133,6 +133,11 @@ func (t *TextField) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 	}
 }
 
+// Invalid returns true if the field is currently marked as invalid.
+func (t *TextField) Invalid() bool {
+	return t.invalid
+}
+
 func (t *TextField) currentBackgroundInk() draw.Ink {
 	switch {
 	case t.invalid:
@@ -177,6 +182,9 @@ func (t *TextField) DefaultFocusGained() {
 // DefaultFocusLost provides the default focus lost handling.
 func (t *TextField) DefaultFocusLost() {
 	t.SetBorder(t.unfocusedBorder)
+	if !t.CanSelectAll() {
+		t.SetSelectionToStart()
+	}
 	t.MarkForRedraw()
 }
 
