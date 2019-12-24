@@ -901,7 +901,7 @@ var widgetList = []*widgetVars{
 			{
 				Name:            "invalidBackgroundInk",
 				Type:            typeInk,
-				Default:         "draw.SystemRedColor",
+				Default:         "draw.InvalidBackgroundColor",
 				Comment:         "the ink that will be used for the background when marked invalid",
 				UseDefaultIfNil: true,
 				Redraw:          true,

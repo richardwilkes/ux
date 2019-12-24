@@ -30,7 +30,7 @@ func (m *managed) initialize() {
 	m.font = draw.UserFont
 	m.backgroundInk = draw.TextBackgroundColor
 	m.disabledBackgroundInk = draw.WindowBackgroundColor
-	m.invalidBackgroundInk = draw.SystemRedColor
+	m.invalidBackgroundInk = draw.InvalidBackgroundColor
 	m.selectedTextBackgroundInk = draw.SelectedTextBackgroundColor
 	m.textInk = draw.TextColor
 	m.selectedTextInk = draw.SelectedTextColor
@@ -107,7 +107,7 @@ func (t *TextField) InvalidBackgroundInk() draw.Ink {
 // when marked invalid. Pass in nil to use the default.
 func (t *TextField) SetInvalidBackgroundInk(value draw.Ink) *TextField {
 	if value == nil {
-		value = draw.SystemRedColor
+		value = draw.InvalidBackgroundColor
 	}
 	if t.invalidBackgroundInk != value {
 		t.invalidBackgroundInk = value
