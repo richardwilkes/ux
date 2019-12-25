@@ -548,10 +548,10 @@ func (w *Window) updateTooltip(target *Panel, where geom.Point) {
 	var tip *Panel
 	for target != nil {
 		avoid = target.ContentRect(true)
-		avoid.Point = target.ToRoot(avoid.Point)
+		avoid.Point = target.PointToRoot(avoid.Point)
 		avoid.Align()
 		if target.UpdateTooltipCallback != nil {
-			avoid = target.UpdateTooltipCallback(target.FromRoot(where), avoid)
+			avoid = target.UpdateTooltipCallback(target.PointFromRoot(where), avoid)
 		}
 		if target.Tooltip != nil {
 			tip = target.Tooltip
@@ -587,7 +587,7 @@ func (w *Window) updateCursor(target *Panel, where geom.Point) {
 		if target.UpdateCursorCallback == nil {
 			target = target.parent
 		} else {
-			cursor = target.UpdateCursorCallback(target.FromRoot(where))
+			cursor = target.UpdateCursorCallback(target.PointFromRoot(where))
 			break
 		}
 	}
@@ -623,7 +623,7 @@ func (w *Window) mouseDown(where geom.Point, button, clickCount int, mod keys.Mo
 		w.lastMouseDownPanel = nil
 		panel := w.root.PanelAt(where)
 		for panel != nil {
-			if panel.Enabled() && panel.MouseDownCallback != nil && panel.MouseDownCallback(panel.FromRoot(where), button, clickCount, mod) {
+			if panel.Enabled() && panel.MouseDownCallback != nil && panel.MouseDownCallback(panel.PointFromRoot(where), button, clickCount, mod) {
 				w.lastMouseDownPanel = panel
 				break
 			}
@@ -634,13 +634,13 @@ func (w *Window) mouseDown(where geom.Point, button, clickCount int, mod keys.Mo
 
 func (w *Window) mouseDrag(where geom.Point, button int, mod keys.Modifiers) {
 	if w.lastMouseDownPanel != nil && w.lastMouseDownPanel.MouseDragCallback != nil && w.lastMouseDownPanel.Enabled() {
-		w.lastMouseDownPanel.MouseDragCallback(w.lastMouseDownPanel.FromRoot(where), button, mod)
+		w.lastMouseDownPanel.MouseDragCallback(w.lastMouseDownPanel.PointFromRoot(where), button, mod)
 	}
 }
 
 func (w *Window) mouseUp(where geom.Point, button int, mod keys.Modifiers) {
 	if w.lastMouseDownPanel != nil && w.lastMouseDownPanel.MouseUpCallback != nil && w.lastMouseDownPanel.Enabled() {
-		w.lastMouseDownPanel.MouseUpCallback(w.lastMouseDownPanel.FromRoot(where), button, mod)
+		w.lastMouseDownPanel.MouseUpCallback(w.lastMouseDownPanel.PointFromRoot(where), button, mod)
 	}
 	if w.MouseExitCallback != nil && w.root != nil && !w.root.PanelAt(where).Is(w.lastMouseOverPanel) {
 		w.MouseExitCallback()
@@ -655,7 +655,7 @@ func (w *Window) mouseEnter(where geom.Point, mod keys.Modifiers) {
 	}
 	panel := w.root.PanelAt(where)
 	if panel.MouseEnterCallback != nil {
-		panel.MouseEnterCallback(panel.FromRoot(where), mod)
+		panel.MouseEnterCallback(panel.PointFromRoot(where), mod)
 	}
 	w.updateTooltipAndCursor(panel, where)
 	w.lastMouseOverPanel = panel
@@ -665,7 +665,7 @@ func (w *Window) mouseMove(where geom.Point, mod keys.Modifiers) {
 	panel := w.root.PanelAt(where)
 	if panel.Is(w.lastMouseOverPanel) {
 		if panel.MouseMoveCallback != nil {
-			panel.MouseMoveCallback(panel.FromRoot(where), mod)
+			panel.MouseMoveCallback(panel.PointFromRoot(where), mod)
 		}
 		w.updateTooltipAndCursor(panel, where)
 	} else if w.MouseEnterCallback != nil {
@@ -686,7 +686,7 @@ func (w *Window) mouseExit() {
 func (w *Window) mouseWheel(where, delta geom.Point, mod keys.Modifiers) {
 	panel := w.root.PanelAt(where)
 	for panel != nil {
-		if panel.Enabled() && panel.MouseWheelCallback != nil && panel.MouseWheelCallback(panel.FromRoot(where), delta, mod) {
+		if panel.Enabled() && panel.MouseWheelCallback != nil && panel.MouseWheelCallback(panel.PointFromRoot(where), delta, mod) {
 			break
 		}
 		panel = panel.parent
@@ -737,7 +737,7 @@ func (w *Window) dragEntered(di *DragInfo) DragOperation {
 	panel := w.root.PanelAt(where)
 	op := DragOperationNone
 	if panel.DragEnteredCallback != nil {
-		delta := panel.FromRoot(where)
+		delta := panel.PointFromRoot(where)
 		delta.Subtract(where)
 		di.ApplyOffset(delta.X, delta.Y)
 		op = panel.DragEnteredCallback(di)
@@ -753,7 +753,7 @@ func (w *Window) dragUpdated(di *DragInfo) DragOperation {
 	op := DragOperationNone
 	if panel.Is(w.lastDragPanel) {
 		if panel.DragUpdatedCallback != nil {
-			delta := panel.FromRoot(where)
+			delta := panel.PointFromRoot(where)
 			delta.Subtract(where)
 			di.ApplyOffset(delta.X, delta.Y)
 			op = panel.DragUpdatedCallback(di)
@@ -789,7 +789,7 @@ func (w *Window) dropIsAcceptable(di *DragInfo) bool {
 	var acceptable bool
 	if panel.Is(w.lastDragPanel) {
 		if panel.DropIsAcceptableCallback != nil {
-			delta := panel.FromRoot(where)
+			delta := panel.PointFromRoot(where)
 			delta.Subtract(where)
 			di.ApplyOffset(delta.X, delta.Y)
 			acceptable = panel.DropIsAcceptableCallback(di)
@@ -805,7 +805,7 @@ func (w *Window) drop(di *DragInfo) bool {
 	var accepted bool
 	if panel.Is(w.lastDragPanel) {
 		if panel.DropCallback != nil {
-			delta := panel.FromRoot(where)
+			delta := panel.PointFromRoot(where)
 			delta.Subtract(where)
 			di.ApplyOffset(delta.X, delta.Y)
 			accepted = panel.DropCallback(di)
@@ -820,7 +820,7 @@ func (w *Window) dropFinished(di *DragInfo) {
 	panel := w.root.PanelAt(where)
 	if panel.Is(w.lastDragPanel) {
 		if panel.DropFinishedCallback != nil {
-			delta := panel.FromRoot(where)
+			delta := panel.PointFromRoot(where)
 			delta.Subtract(where)
 			di.ApplyOffset(delta.X, delta.Y)
 			panel.DropFinishedCallback(di)

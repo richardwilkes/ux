@@ -155,7 +155,7 @@ func createButtonsWindow(title string, where geom.Point) *ux.Window {
 			imgPanel.Tooltip = tooltip.NewWithText(where.String())
 			avoid.X = where.X - 16
 			avoid.Y = where.Y - 16
-			avoid.Point = imgPanel.ToRoot(avoid.Point)
+			avoid.Point = imgPanel.PointToRoot(avoid.Point)
 			avoid.Width = 32
 			avoid.Height = 32
 			return avoid
@@ -259,11 +259,9 @@ func createCheckBoxPanel() *ux.Panel {
 	panel := ux.NewPanel()
 	flex.New().Apply(panel)
 	createCheckBox("Press Me", panel)
-	createCheckBox("Initially Mixed", panel).State = state.Mixed
+	createCheckBox("Initially Mixed", panel).SetState(state.Mixed)
 	createCheckBox("Disabled", panel).SetEnabled(false)
-	check := createCheckBox("Disabled w/Check", panel)
-	check.SetEnabled(false)
-	check.State = state.Checked
+	createCheckBox("Disabled w/Check", panel).SetState(state.Checked).SetEnabled(false)
 	return panel
 }
 

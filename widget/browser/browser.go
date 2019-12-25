@@ -53,9 +53,7 @@ func (b *Browser) LoadURL(url string) {
 // DefaultFrameChange adjusts the native component rect to match the panel.
 func (b *Browser) DefaultFrameChange() {
 	if b.IsValid() {
-		rect := b.ContentRect(false)
-		rect.Point = b.ToRoot(rect.Point)
-		b.osSetFrame(rect)
+		b.osSetFrame(b.RectToRoot(b.ContentRect(false)))
 	}
 }
 

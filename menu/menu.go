@@ -168,7 +168,7 @@ func (menu *Menu) Count() int {
 }
 
 // Popup the menu at the specified position within the window.
-func (menu *Menu) Popup(wnd *ux.Window, where geom.Point, currentIndex int) {
+func (menu *Menu) Popup(wnd *ux.Window, where geom.Rect, currentIndex int) {
 	if menu.IsValid() && wnd.IsValid() {
 		menu.osPopup(wnd, where, currentIndex)
 	}

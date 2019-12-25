@@ -52,7 +52,7 @@ func (menu *Menu) osItemCount() int {
 	return 0
 }
 
-func (menu *Menu) osPopup(wnd *ux.Window, where geom.Point, currentIndex int) {
+func (menu *Menu) osPopup(wnd *ux.Window, where geom.Rect, currentIndex int) {
 	// RAW: Implement
 }
 

@@ -101,9 +101,9 @@ func (menu *Menu) osItemCount() int {
 	return menu.menu.NumberOfItems()
 }
 
-func (menu *Menu) osPopup(wnd *ux.Window, where geom.Point, currentIndex int) {
+func (menu *Menu) osPopup(wnd *ux.Window, where geom.Rect, currentIndex int) {
 	if item := menu.menu.ItemAtIndex(currentIndex); item != nil {
-		menu.menu.PopupMenuPositioningItemAtLocationInView(item, where.X, where.Y, wnd.OSWindow().ContentView())
+		menu.menu.PopupMenuPositioningItemAtLocationInView(item, where.X, where.Y, where.Width, where.Height, wnd.OSWindow().ContentView())
 	}
 }
 

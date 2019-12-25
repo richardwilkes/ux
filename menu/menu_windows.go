@@ -120,7 +120,7 @@ func (menu *Menu) osItemCount() int {
 	return win32.GetMenuItemCount(menu.menu)
 }
 
-func (menu *Menu) osPopup(wnd *ux.Window, where geom.Point, currentIndex int) {
+func (menu *Menu) osPopup(wnd *ux.Window, where geom.Rect, currentIndex int) {
 	// RAW: Implement
 }
 

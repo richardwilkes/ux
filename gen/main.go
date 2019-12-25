@@ -27,6 +27,7 @@ const (
 	typeInk         = "draw.Ink"
 	typeAlignment   = "align.Alignment"
 	typeSide        = "side.Side"
+	typeState       = "state.State"
 	typeDuration    = "time.Duration"
 	typeCellFactory = "widget.CellFactory"
 	typeBorder      = "border.Border"
@@ -340,6 +341,13 @@ var widgetList = []*widgetVars{
 				Type:    typeSide,
 				Default: "side.Left",
 				Comment: "the side of the text the image should be on",
+				Redraw:  true,
+			},
+			{
+				Name:    "state",
+				Type:    typeState,
+				Default: "state.Unchecked",
+				Comment: "the checked state",
 				Redraw:  true,
 			},
 		},
@@ -1034,6 +1042,8 @@ func imports(w *widgetVars) []string {
 			usr["github.com/richardwilkes/ux/layout/align"] = true
 		case typeSide:
 			usr["github.com/richardwilkes/ux/layout/side"] = true
+		case typeState:
+			usr["github.com/richardwilkes/ux/widget/checkbox/state"] = true
 		case typeDuration:
 			sys["time"] = true
 		case typeCellFactory:

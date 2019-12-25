@@ -132,29 +132,21 @@ func (p *PopupMenu) Click() {
 	hasItem := false
 	m := menu.New(ids.PopupMenuTemporaryBaseID, "", nil)
 	defer m.Dispose()
-	for i := range p.items {
-		if p.addItemToMenu(m, i) {
+	for i, item := range p.items {
+		if _, ok := item.(*separationMarker); ok {
+			m.InsertSeparator(-1)
+		} else {
 			hasItem = true
+			index := i
+			m.InsertItem(-1, ids.PopupMenuTemporaryBaseID+1+index, fmt.Sprintf("%v", item), nil, 0, nil, func() {
+				if index != p.SelectedIndex() {
+					p.SelectIndex(index)
+				}
+			})
 		}
 	}
 	if hasItem {
-		m.Popup(p.Window(), p.ToRoot(p.ContentRect(true).Point), p.selectedIndex)
-	}
-}
-
-func (p *PopupMenu) addItemToMenu(m *menu.Menu, index int) bool {
-	one := p.items[index]
-	switch one.(type) {
-	case *separationMarker:
-		m.InsertSeparator(-1)
-		return false
-	default:
-		m.InsertItem(-1, ids.PopupMenuTemporaryBaseID+1+index, fmt.Sprintf("%v", one), nil, 0, nil, func() {
-			if index != p.SelectedIndex() {
-				p.SelectIndex(index)
-			}
-		})
-		return true
+		m.Popup(p.Window(), p.RectToRoot(p.ContentRect(true)), p.selectedIndex)
 	}
 }
 

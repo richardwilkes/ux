@@ -19,7 +19,6 @@ type CheckBox struct {
 	ux.Panel
 	managed
 	ClickCallback func()
-	State         state.State
 	Pressed       bool
 }
 
@@ -104,7 +103,7 @@ func (c *CheckBox) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bo
 	}
 	widget.DrawRoundedRectBase(gc, rect, c.cornerRadius, c.currentBackgroundInk(), c.edgeInk)
 	rect.InsetUniform(0.5)
-	switch c.State {
+	switch c.State() {
 	case state.Mixed:
 		gc.SetStrokeWidth(2)
 		gc.MoveTo(rect.X+rect.Width*0.25, rect.Y+rect.Height*0.5)
@@ -153,10 +152,10 @@ func (c *CheckBox) Click() {
 }
 
 func (c *CheckBox) updateState() {
-	if c.State == state.Checked {
-		c.State = state.Unchecked
+	if c.State() == state.Checked {
+		c.SetState(state.Unchecked)
 	} else {
-		c.State = state.Checked
+		c.SetState(state.Checked)
 	}
 }
 
@@ -183,8 +182,8 @@ func (c *CheckBox) DefaultMouseUp(where geom.Point, button int, mod keys.Modifie
 	c.MarkForRedraw()
 	rect := c.ContentRect(false)
 	if rect.ContainsPoint(where) {
+		c.updateState()
 		if c.ClickCallback != nil {
-			c.updateState()
 			c.ClickCallback()
 		}
 	}

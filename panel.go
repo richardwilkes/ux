@@ -459,9 +459,9 @@ func (p *Panel) PanelAt(pt geom.Point) *Panel {
 	return p
 }
 
-// ToRoot converts panel-local coordinates into root coordinates, which when
-// rooted within a window, will be window-local coordinates.
-func (p *Panel) ToRoot(pt geom.Point) geom.Point {
+// PointToRoot converts panel-local coordinates into root coordinates, which
+// when rooted within a window, will be window-local coordinates.
+func (p *Panel) PointToRoot(pt geom.Point) geom.Point {
 	pt.Add(p.frame.Point)
 	parent := p.parent
 	for parent != nil {
@@ -471,9 +471,9 @@ func (p *Panel) ToRoot(pt geom.Point) geom.Point {
 	return pt
 }
 
-// FromRoot converts root coordinates (i.e. window-local, when rooted within a
-// window) into panel-local coordinates.
-func (p *Panel) FromRoot(pt geom.Point) geom.Point {
+// PointFromRoot converts root coordinates (i.e. window-local, when rooted
+// within a window) into panel-local coordinates.
+func (p *Panel) PointFromRoot(pt geom.Point) geom.Point {
 	pt.Subtract(p.frame.Point)
 	parent := p.parent
 	for parent != nil {
@@ -481,6 +481,20 @@ func (p *Panel) FromRoot(pt geom.Point) geom.Point {
 		parent = parent.parent
 	}
 	return pt
+}
+
+// RectToRoot converts panel-local coordinates into root coordinates, which
+// when rooted within a window, will be window-local coordinates.
+func (p *Panel) RectToRoot(rect geom.Rect) geom.Rect {
+	rect.Point = p.PointToRoot(rect.Point)
+	return rect
+}
+
+// RectFromRoot converts root coordinates (i.e. window-local, when rooted
+// within a window) into panel-local coordinates.
+func (p *Panel) RectFromRoot(rect geom.Rect) geom.Rect {
+	rect.Point = p.PointFromRoot(rect.Point)
+	return rect
 }
 
 // ScrollIntoView attempts to scroll this panel into the current view if it is

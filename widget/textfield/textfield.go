@@ -540,6 +540,11 @@ func (t *TextField) notifyOfModification() {
 	if t.ModifiedCallback != nil {
 		t.ModifiedCallback()
 	}
+	t.Validate()
+}
+
+// Validate forces field content validation to be run.
+func (t *TextField) Validate() {
 	invalid := false
 	if t.ValidateCallback != nil {
 		invalid = !t.ValidateCallback()

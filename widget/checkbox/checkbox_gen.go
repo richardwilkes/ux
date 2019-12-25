@@ -9,6 +9,7 @@ import (
 	"github.com/richardwilkes/ux/draw"
 	"github.com/richardwilkes/ux/layout/align"
 	"github.com/richardwilkes/ux/layout/side"
+	"github.com/richardwilkes/ux/widget/checkbox/state"
 )
 
 type managed struct {
@@ -27,6 +28,7 @@ type managed struct {
 	hAlign               align.Alignment
 	vAlign               align.Alignment
 	side                 side.Side
+	state                state.State
 }
 
 func (m *managed) initialize() {
@@ -43,6 +45,7 @@ func (m *managed) initialize() {
 	m.hAlign = align.Start
 	m.vAlign = align.Middle
 	m.side = side.Left
+	m.state = state.Unchecked
 }
 
 // Image returns the image. May be nil.
@@ -293,6 +296,20 @@ func (c *CheckBox) Side() side.Side {
 func (c *CheckBox) SetSide(value side.Side) *CheckBox {
 	if c.side != value {
 		c.side = value
+		c.MarkForRedraw()
+	}
+	return c
+}
+
+// State returns the checked state.
+func (c *CheckBox) State() state.State {
+	return c.state
+}
+
+// SetState sets the checked state.
+func (c *CheckBox) SetState(value state.State) *CheckBox {
+	if c.state != value {
+		c.state = value
 		c.MarkForRedraw()
 	}
 	return c
