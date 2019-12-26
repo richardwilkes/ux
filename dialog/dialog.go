@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/richardwilkes/toolbox/errs"
-	"github.com/richardwilkes/toolbox/i18n"
 	"github.com/richardwilkes/toolbox/log/jot"
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
@@ -204,15 +203,6 @@ func QuestionDialog(primary, detail string) int {
 // specified panel. This function returns ids.ModalResponseOK if the OK button
 // was pressed and ids.ModalResponseCancel if the Cancel button was pressed.
 func QuestionDialogWithPanel(msgPanel *ux.Panel) int {
-	buttonPanel := ux.NewPanel()
-	flex.New().Columns(2).EqualColumns(true).HSpacing(layout.DefaultHSpacing * 2).Apply(buttonPanel)
-	cancelButton := button.New().SetText(i18n.Text("Cancel"))
-	buttonPanel.AddChild(cancelButton.AsPanel())
-	okButton := button.New().SetText(i18n.Text("OK"))
-	buttonPanel.AddChild(okButton.AsPanel())
-	for _, p := range buttonPanel.Children() {
-		flex.NewData().HAlign(align.Fill).Apply(p)
-	}
 	if dialog, err := NewDialog(icons.Question(), msgPanel, []*ButtonInfo{NewCancelButtonInfo(), NewOKButtonInfo()}); err != nil {
 		jot.Error(err)
 	} else {
