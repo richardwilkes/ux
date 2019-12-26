@@ -19,8 +19,9 @@ func (d *SaveDialog) DirectoryURL() string {
 }
 
 // SetDirectoryURL sets the directory the dialog will open up in.
-func (d *SaveDialog) SetDirectoryURL(dirURL string) {
+func (d *SaveDialog) SetDirectoryURL(dirURL string) *SaveDialog {
 	d.osSetDirectoryURL(dirURL)
+	return d
 }
 
 // AllowedFileTypes returns the set of permitted file types. nil will be
@@ -31,7 +32,7 @@ func (d *SaveDialog) AllowedFileTypes() []string {
 
 // SetAllowedFileTypes sets the permitted file types that may be selected for
 // saving. Pass in nil to allow all files.
-func (d *SaveDialog) SetAllowedFileTypes(allowedExtensions []string) {
+func (d *SaveDialog) SetAllowedFileTypes(allowedExtensions []string) *SaveDialog {
 	var actual []string
 	for _, ext := range allowedExtensions {
 		for strings.HasPrefix(ext, ".") {
@@ -42,6 +43,7 @@ func (d *SaveDialog) SetAllowedFileTypes(allowedExtensions []string) {
 		}
 	}
 	d.osSetAllowedFileTypes(actual)
+	return d
 }
 
 // URL returns the URL that was chosen.
