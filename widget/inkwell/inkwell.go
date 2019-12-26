@@ -13,6 +13,16 @@ import (
 	"github.com/richardwilkes/ux/widget"
 )
 
+// Mask is used to limit the types of ink permitted in the ink well.
+type Mask uint8
+
+// Possible ink well masks.
+const (
+	ColorInkWellMask Mask = 1 << iota
+	PatternInkWellMask
+	GradientInkWellMask
+)
+
 // InkWell represents a control that holds and lets a user choose an ink.
 type InkWell struct {
 	ux.Panel
@@ -21,13 +31,17 @@ type InkWell struct {
 	InkChangedCallback    func()
 	ClickCallback         func()
 	ValidateImageCallback func(*draw.Image) *draw.Image
+	mask                  Mask
 	Pressed               bool
 	dragInProgress        bool
 }
 
 // New creates a new InkWell.
 func New() *InkWell {
-	well := &InkWell{ink: draw.ControlBackgroundInk}
+	well := &InkWell{
+		ink:  draw.ControlBackgroundInk,
+		mask: ColorInkWellMask | PatternInkWellMask | GradientInkWellMask,
+	}
 	well.managed.initialize()
 	well.InitTypeAndID(well)
 	well.SetFocusable(true)
@@ -50,6 +64,17 @@ func New() *InkWell {
 	return well
 }
 
+// AllowedTypes returns the types of ink allowed to be set via SetInk().
+func (well *InkWell) AllowedTypes() Mask {
+	return well.mask
+}
+
+// SetAllowedTypes sets the types of ink allowed to be set via SetInk().
+func (well *InkWell) SetAllowedTypes(mask Mask) *InkWell {
+	well.mask = mask
+	return well
+}
+
 // Ink returns the well's ink.
 func (well *InkWell) Ink() draw.Ink {
 	return well.ink
@@ -59,6 +84,20 @@ func (well *InkWell) Ink() draw.Ink {
 func (well *InkWell) SetInk(ink draw.Ink) *InkWell {
 	if ink == nil {
 		ink = draw.ControlBackgroundInk
+	}
+	switch ink.(type) {
+	case draw.Color, *draw.Color:
+		if well.mask&ColorInkWellMask == 0 {
+			return well
+		}
+	case *draw.Pattern:
+		if well.mask&PatternInkWellMask == 0 {
+			return well
+		}
+	case *draw.Gradient:
+		if well.mask&GradientInkWellMask == 0 {
+			return well
+		}
 	}
 	if ink != well.ink {
 		well.ink = ink
@@ -152,9 +191,10 @@ func (well *InkWell) DefaultKeyDown(keyCode int, ch rune, mod keys.Modifiers, re
 	return false
 }
 
-// DefaultClick provides the default click handling.
+// DefaultClick provides the default click handling, which shows a dialog for
+// selecting an ink.
 func (well *InkWell) DefaultClick() {
-	jot.Debug("clicked on InkWell")
+	showDialog(well)
 }
 
 // Click makes the ink well behave as if a user clicked on it.
