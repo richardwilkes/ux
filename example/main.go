@@ -362,10 +362,10 @@ func createTextField(text string, panel *ux.Panel) *textfield.TextField {
 	return field
 }
 
-func createAboutWindow() {
+func createAboutWindow(item *menu.Item) {
 	if aboutWindow == nil {
 		var err error
-		aboutWindow, err = ux.NewWindow("About "+cmdline.AppName, geom.Rect{}, ux.TitledWindowMask|ux.ClosableWindowMask)
+		aboutWindow, err = ux.NewWindow(item.Title(), geom.Rect{}, ux.TitledWindowMask|ux.ClosableWindowMask)
 		if err != nil {
 			jot.Error(err)
 			return
@@ -386,6 +386,6 @@ func createAboutWindow() {
 	aboutWindow.ToFront()
 }
 
-func createPreferencesWindow() {
-	jot.Info("Preferences...")
+func createPreferencesWindow(item *menu.Item) {
+	jot.Info(item.Title())
 }

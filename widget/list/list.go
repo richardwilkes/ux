@@ -278,12 +278,12 @@ func (l *List) DefaultKeyDown(keyCode int, ch rune, mod keys.Modifiers, repeat b
 }
 
 // DefaultCanPerformCmd provides the default can perform cmd handling.
-func (l *List) DefaultCanPerformCmd(id int) bool {
+func (l *List) DefaultCanPerformCmd(source interface{}, id int) bool {
 	return id == ids.SelectAllItemID && l.Selection.Count() < len(l.rows)
 }
 
 // DefaultPerformCmd provides the default perform cmd handling.
-func (l *List) DefaultPerformCmd(id int) {
+func (l *List) DefaultPerformCmd(source interface{}, id int) {
 	if id == ids.SelectAllItemID {
 		l.SelectRange(0, len(l.rows)-1, false)
 	}

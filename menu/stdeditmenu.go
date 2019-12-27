@@ -11,8 +11,8 @@ import (
 )
 
 // NewEditMenu creates a standard 'Edit' menu.
-func NewEditMenu(prefsHandler func(), updater func(*Menu)) *Menu {
-	menu := New(ids.EditMenuID, i18n.Text("Edit"), updater)
+func NewEditMenu(prefsHandler ItemHandler, updater Updater) *Menu {
+	menu := New(i18n.Text("Edit"), updater)
 	menu.InsertActionItem(-1, action.Cut)
 	menu.InsertActionItem(-1, action.Copy)
 	menu.InsertActionItem(-1, action.Paste)

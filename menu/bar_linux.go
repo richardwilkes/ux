@@ -2,9 +2,7 @@ package menu
 
 import "github.com/richardwilkes/ux"
 
-type osMenuBar = int
-
-func osMenuBarForWindow(wnd *ux.Window, updater func(*Menu)) (bar *Bar, isGlobal, isFirst bool) {
+func osMenuBarForWindow(wnd *ux.Window, updater Updater) (bar *Bar, isGlobal, isFirst bool) {
 	if !wnd.IsValid() {
 		return nil, false, false
 	}
@@ -17,20 +15,6 @@ func osMenuBarHeightInWindow() float64 {
 	return 0
 }
 
-func (bar *Bar) osMenuAtIndex(index int) *Menu {
-	// RAW: Implement
-	return nil
-}
-
-func (bar *Bar) osInsertMenu(atIndex int, menu *Menu) {
-	// RAW: Implement
-}
-
-func (bar *Bar) osItemCount() int {
-	// RAW: Implement
-	return 0
-}
-
-func (bar *Bar) osRemoveMenu(index int) {
+func (bar *Bar) osInsertMenu(atIndex, id int, menu *Menu) {
 	// RAW: Implement
 }

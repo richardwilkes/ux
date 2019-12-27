@@ -53,6 +53,8 @@ type CmdAction struct {
 	ActionModifiers keys.Modifiers
 }
 
+var _ Action = &CmdAction{}
+
 // ID implements action.Action.
 func (a *CmdAction) ID() int {
 	return a.ActionID
@@ -74,19 +76,19 @@ func (a *CmdAction) HotKeyModifiers() keys.Modifiers {
 }
 
 // Enabled implements action.Action.
-func (a *CmdAction) Enabled() bool {
+func (a *CmdAction) Enabled(source interface{}) bool {
 	if wnd := ux.WindowWithFocus(); wnd != nil {
 		focus := wnd.Focus()
-		return focus != nil && focus.CanPerformCmdCallback != nil && focus.CanPerformCmdCallback(a.ActionID)
+		return focus != nil && focus.CanPerformCmdCallback != nil && focus.CanPerformCmdCallback(source, a.ActionID)
 	}
 	return false
 }
 
 // Execute implements action.Action.
-func (a *CmdAction) Execute() {
+func (a *CmdAction) Execute(source interface{}) {
 	if wnd := ux.WindowWithFocus(); wnd != nil {
 		if focus := wnd.Focus(); focus != nil && focus.PerformCmdCallback != nil {
-			focus.PerformCmdCallback(a.ActionID)
+			focus.PerformCmdCallback(source, a.ActionID)
 		}
 	}
 }

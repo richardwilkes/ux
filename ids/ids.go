@@ -2,8 +2,7 @@ package ids
 
 // Pre-defined menu IDs. Apps should start their IDs at UserBaseID.
 const (
-	BarID = 1 + iota
-	AppMenuID
+	AppMenuID = 1 + iota
 	FileMenuID
 	EditMenuID
 	WindowMenuID

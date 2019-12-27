@@ -54,8 +54,8 @@ type Panel struct {
 	DropIsAcceptableCallback            func(dragInfo *DragInfo) bool
 	DropCallback                        func(dragInfo *DragInfo) bool
 	DropFinishedCallback                func(dragInfo *DragInfo)
-	CanPerformCmdCallback               func(id int) bool
-	PerformCmdCallback                  func(id int)
+	CanPerformCmdCallback               func(source interface{}, id int) bool
+	PerformCmdCallback                  func(source interface{}, id int)
 	FrameChangeCallback                 func()
 	FrameChangeInChildHierarchyCallback func(panel *Panel)
 	ScrollRectIntoViewCallback          func(rect geom.Rect) bool

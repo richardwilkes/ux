@@ -130,7 +130,7 @@ func (p *PopupMenu) currentTextInk() draw.Ink {
 // popup menu to appear.
 func (p *PopupMenu) Click() {
 	hasItem := false
-	m := menu.New(ids.PopupMenuTemporaryBaseID, "", nil)
+	m := menu.New("", nil)
 	defer m.Dispose()
 	for i, item := range p.items {
 		if _, ok := item.(*separationMarker); ok {
@@ -138,7 +138,7 @@ func (p *PopupMenu) Click() {
 		} else {
 			hasItem = true
 			index := i
-			m.InsertItem(-1, ids.PopupMenuTemporaryBaseID+1+index, fmt.Sprintf("%v", item), nil, 0, nil, func() {
+			m.InsertItem(-1, ids.PopupMenuTemporaryBaseID+index, fmt.Sprintf("%v", item), nil, 0, nil, func(*menu.Item) {
 				if index != p.SelectedIndex() {
 					p.SelectIndex(index)
 				}

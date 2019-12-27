@@ -1,6 +1,8 @@
 package action
 
-import "github.com/richardwilkes/ux/keys"
+import (
+	"github.com/richardwilkes/ux/keys"
+)
 
 // Action describes an action that can be performed.
 type Action interface {
@@ -18,8 +20,8 @@ type Action interface {
 	HotKeyModifiers() keys.Modifiers
 	// Enabled returns true if the action can be used. Care should be made to
 	// keep this method fast to avoid slowing down the user interface.
-	Enabled() bool
+	Enabled(source interface{}) bool
 	// Execute the action. Will only be called if the action has been
 	// triggered and Enabled() returns true.
-	Execute()
+	Execute(source interface{})
 }

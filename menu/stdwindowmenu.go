@@ -8,12 +8,12 @@ import (
 )
 
 // NewWindowMenu creates a standard 'Window' menu.
-func NewWindowMenu(updater func(*Menu)) *Menu {
-	menu := New(ids.WindowMenuID, i18n.Text("Window"), updater)
+func NewWindowMenu(updater Updater) *Menu {
+	menu := New(i18n.Text("Window"), updater)
 	InsertMinimizeItem(menu, -1)
 	InsertZoomItem(menu, -1)
 	menu.InsertSeparator(-1)
-	menu.InsertItem(-1, ids.BringAllWindowsToFrontItemID, i18n.Text("Bring All to Front"), nil, 0, nil, ux.AppWindowsToFront)
+	menu.InsertItem(-1, ids.BringAllWindowsToFrontItemID, i18n.Text("Bring All to Front"), nil, 0, nil, func(*Item) { ux.AppWindowsToFront() })
 	return menu
 }
 
@@ -25,14 +25,14 @@ func InsertMinimizeItem(menu *Menu, atIndex int) {
 
 // MinimizeValidator provides the standard validation function for the
 // "Minimize" menu item.
-func MinimizeValidator() bool {
+func MinimizeValidator(item *Item) bool {
 	w := ux.WindowWithFocus()
 	return w != nil && w.Minimizable()
 }
 
 // MinimizeHandler provides the standard handler function for the "Minimize"
 // menu item.
-func MinimizeHandler() {
+func MinimizeHandler(item *Item) {
 	if wnd := ux.WindowWithFocus(); wnd != nil {
 		wnd.Minimize()
 	}
@@ -46,14 +46,14 @@ func InsertZoomItem(menu *Menu, atIndex int) {
 
 // ZoomValidator provides the standard validation function for the "Zoom" menu
 // item.
-func ZoomValidator() bool {
+func ZoomValidator(item *Item) bool {
 	w := ux.WindowWithFocus()
 	return w != nil && w.Resizable()
 }
 
 // ZoomHandler provides the standard handler function for the "Zoom" menu
 // item.
-func ZoomHandler() {
+func ZoomHandler(item *Item) {
 	if wnd := ux.WindowWithFocus(); wnd != nil {
 		wnd.Zoom()
 	}

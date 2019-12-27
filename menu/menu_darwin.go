@@ -7,115 +7,79 @@ import (
 	"github.com/richardwilkes/ux/keys"
 )
 
-var nativeMenuMap = make(map[ns.MenuNative]*Menu)
-
 type osMenu = *ns.Menu
 
-func osNewMenu(title string, updater func(*Menu)) osMenu {
+func osNewMenu(title string, updater Updater) osMenu {
 	var u func(*ns.Menu)
 	if updater != nil {
 		u = func(nsmenu *ns.Menu) {
-			if m, ok := nativeMenuMap[nsmenu.Native()]; ok {
-				updater(m)
-			}
+			updater(&Menu{native: nsmenu})
 		}
 	}
 	return ns.MenuInitWithTitle(title, u)
 }
 
-func (menu *Menu) osAddNativeMenu() {
-	nativeMenuMap[menu.menu.Native()] = menu
-}
-
-func (menu *Menu) osRemoveNativeMenu() {
-	delete(nativeMenuMap, menu.menu.Native())
+func (menu *Menu) osIsSame(other *Menu) bool {
+	return menu.native.Native() == other.native.Native()
 }
 
 func (menu *Menu) osItemAtIndex(index int) *Item {
-	if index < 0 || index >= menu.menu.NumberOfItems() {
+	if index < 0 || index >= menu.native.NumberOfItems() {
 		return nil
 	}
-	item := menu.menu.ItemAtIndex(index)
-	var subMenu *Menu
-	if sub := item.Submenu(); sub != nil {
-		if subMenu = nativeMenuMap[sub.Native()]; subMenu == nil {
-			subMenu = &Menu{
-				ID:    item.Tag(),
-				Title: sub.Title(),
-				menu:  sub,
-				valid: true,
-			}
-			subMenu.osAddNativeMenu()
-		}
-	}
-	return &Item{
-		Owner:   menu,
-		Index:   index,
-		ID:      item.Tag(),
-		Title:   item.Title(),
-		SubMenu: subMenu,
-	}
+	return &Item{native: menu.native.ItemAtIndex(index)}
 }
 
-func (menu *Menu) osSetItemTitle(index int, title string) {
-	if index >= 0 && index < menu.menu.NumberOfItems() {
-		menu.menu.ItemAtIndex(index).SetTitle(title)
+func (menu *Menu) osiInsertItemAtIndex(item *ns.MenuItem, index int) {
+	if index < 0 {
+		index = menu.native.NumberOfItems()
 	}
+	menu.native.InsertItemAtIndex(item, index)
 }
 
 func (menu *Menu) osInsertSeparator(atIndex int) {
-	if atIndex < 0 {
-		atIndex = menu.menu.NumberOfItems()
-	}
-	menu.menu.InsertItemAtIndex(ns.MenuSeparatorItem(), atIndex)
+	menu.osiInsertItemAtIndex(ns.MenuSeparatorItem(), atIndex)
 }
 
-func (menu *Menu) osInsertItem(atIndex, id int, title string, key *keys.Key, keyModifiers keys.Modifiers, validator func() bool, handler func()) {
+func (menu *Menu) osInsertItem(atIndex, id int, title string, key *keys.Key, keyModifiers keys.Modifiers, validator ItemValidator, handler ItemHandler) *Item {
 	var keyCodeStr string
 	if key != nil {
 		keyCodeStr = key.RuneStr()
 	}
-	item := ns.MenuItemInitWithTitleActionKeyEquivalent(id, title, keyCodeStr, int(keyModifiers)<<16, validator, handler)
-	if atIndex < 0 {
-		atIndex = menu.menu.NumberOfItems()
-	}
-	menu.menu.InsertItemAtIndex(item, atIndex)
+	item := ns.MenuItemInitWithTitleActionKeyEquivalent(id, title, keyCodeStr, int(keyModifiers)<<16, func(item *ns.MenuItem) bool { return validator(&Item{native: item}) }, func(item *ns.MenuItem) { handler(&Item{native: item}) })
+	menu.osiInsertItemAtIndex(item, atIndex)
+	return &Item{native: item}
 }
 
-func (menu *Menu) osInsertMenu(atIndex, id int, title string, updater func(*Menu)) *Menu {
+func (menu *Menu) osInsertNewMenu(atIndex, id int, title string, updater Updater) *Menu {
 	item := ns.MenuItemInitWithTitleActionKeyEquivalent(id, title, "", 0, nil, nil)
-	subMenu := New(id, title, updater)
-	item.SetSubmenu(subMenu.menu)
-	if atIndex < 0 {
-		atIndex = menu.menu.NumberOfItems()
-	}
-	menu.menu.InsertItemAtIndex(item, atIndex)
+	subMenu := New(title, updater)
+	item.SetSubMenu(subMenu.native)
+	menu.osiInsertItemAtIndex(item, atIndex)
 	return subMenu
 }
 
+func (menu *Menu) osInsertMenu(atIndex, id int, subMenu *Menu) {
+	item := ns.MenuItemInitWithTitleActionKeyEquivalent(id, subMenu.native.Title(), "", 0, nil, nil)
+	item.SetSubMenu(subMenu.native)
+	menu.osiInsertItemAtIndex(item, atIndex)
+}
+
 func (menu *Menu) osRemoveItem(index int) {
-	menu.menu.RemoveItem(index)
+	menu.native.RemoveItem(index)
 }
 
 func (menu *Menu) osItemCount() int {
-	return menu.menu.NumberOfItems()
+	return menu.native.NumberOfItems()
 }
 
 func (menu *Menu) osPopup(wnd *ux.Window, where geom.Rect, currentIndex int) {
-	if item := menu.menu.ItemAtIndex(currentIndex); item != nil {
-		menu.menu.PopupMenuPositioningItemAtLocationInView(item, where.X, where.Y, where.Width, where.Height, wnd.OSWindow().ContentView())
+	if item := menu.native.ItemAtIndex(currentIndex); item != nil {
+		menu.native.PopupMenuPositioningItemAtLocationInView(item, where.X, where.Y, where.Width, where.Height, wnd.OSWindow().ContentView())
 	}
 }
 
 func (menu *Menu) osDispose() {
-	menu.menu.Release()
-}
-
-func insertMenuNoCreate(menu, subMenu *Menu, atIndex int) {
-	item := ns.MenuItemInitWithTitleActionKeyEquivalent(subMenu.ID, subMenu.Title, "", 0, nil, nil)
-	item.SetSubmenu(subMenu.menu)
-	if atIndex < 0 {
-		atIndex = menu.menu.NumberOfItems()
-	}
-	menu.menu.InsertItemAtIndex(item, atIndex)
+	menu.native.Release()
+	menu.native = nil
 }

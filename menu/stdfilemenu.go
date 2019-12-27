@@ -11,8 +11,8 @@ import (
 )
 
 // NewFileMenu creates a standard 'File' menu.
-func NewFileMenu(updater func(*Menu)) *Menu {
-	menu := New(ids.FileMenuID, i18n.Text("File"), updater)
+func NewFileMenu(updater Updater) *Menu {
+	menu := New(i18n.Text("File"), updater)
 	InsertCloseKeyWindowItem(menu, -1)
 	if runtime.GOOS != toolbox.MacOS {
 		menu.InsertSeparator(-1)
@@ -29,14 +29,14 @@ func InsertCloseKeyWindowItem(menu *Menu, atIndex int) {
 
 // CloseKeyWindowValidator provides the standard validation function for the
 // "Close" menu.
-func CloseKeyWindowValidator() bool {
+func CloseKeyWindowValidator(item *Item) bool {
 	wnd := ux.WindowWithFocus()
 	return wnd != nil && wnd.Closable()
 }
 
 // CloseKeyWindowHandler provides the standard handler function for the
 // "Close" menu.
-func CloseKeyWindowHandler() {
+func CloseKeyWindowHandler(item *Item) {
 	if wnd := ux.WindowWithFocus(); wnd != nil && wnd.Closable() {
 		wnd.AttemptClose()
 	}
@@ -51,5 +51,5 @@ func InsertQuitItem(menu *Menu, atIndex int) {
 	} else {
 		title = i18n.Text("Exit")
 	}
-	menu.InsertItem(atIndex, ids.QuitItemID, title, keys.Q, keys.OSMenuCmdModifier(), nil, ux.AttemptQuit)
+	menu.InsertItem(atIndex, ids.QuitItemID, title, keys.Q, keys.OSMenuCmdModifier(), nil, func(*Item) { ux.AttemptQuit() })
 }

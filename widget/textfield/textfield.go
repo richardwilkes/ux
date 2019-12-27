@@ -409,7 +409,7 @@ func (t *TextField) handleArrowRight(extend, byWord bool) {
 }
 
 // DefaultCanPerformCmd provides the default can perform command handling.
-func (t *TextField) DefaultCanPerformCmd(id int) bool {
+func (t *TextField) DefaultCanPerformCmd(source interface{}, id int) bool {
 	switch id {
 	case ids.CutItemID:
 		return t.CanCut()
@@ -427,7 +427,7 @@ func (t *TextField) DefaultCanPerformCmd(id int) bool {
 }
 
 // DefaultPerformCmd provides the default perform command handling.
-func (t *TextField) DefaultPerformCmd(id int) {
+func (t *TextField) DefaultPerformCmd(source interface{}, id int) {
 	switch id {
 	case ids.CutItemID:
 		t.Cut()
