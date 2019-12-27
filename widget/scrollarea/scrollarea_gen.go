@@ -16,8 +16,8 @@ type managed struct {
 
 func (m *managed) initialize() {
 	m.backgroundInk = draw.TextBackgroundColor
-	m.focusedBorder = border.NewCompound(border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(1), false), border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(1), true))
-	m.unfocusedBorder = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false), border.NewLine(draw.ARGB(0, 0, 0, 0), geom.NewUniformInsets(1), true))
+	m.focusedBorder = border.NewCompound(border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(1), false), border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(1), true))
+	m.unfocusedBorder = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, 0, geom.NewUniformInsets(1), false), border.NewLine(draw.ARGB(0, 0, 0, 0), 0, geom.NewUniformInsets(1), true))
 }
 
 // BackgroundInk returns the ink that will be used for the background.
@@ -50,7 +50,7 @@ func (s *ScrollArea) FocusedBorder() border.Border {
 // not appear correct. Pass in nil to use the default.
 func (s *ScrollArea) SetFocusedBorder(value border.Border) *ScrollArea {
 	if value == nil {
-		value = border.NewCompound(border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(1), false), border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(1), true))
+		value = border.NewCompound(border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(1), false), border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(1), true))
 	}
 	if s.focusedBorder != value {
 		s.focusedBorder = value
@@ -71,7 +71,7 @@ func (s *ScrollArea) UnfocusedBorder() border.Border {
 // will not appear correct. Pass in nil to use the default.
 func (s *ScrollArea) SetUnfocusedBorder(value border.Border) *ScrollArea {
 	if value == nil {
-		value = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false), border.NewLine(draw.ARGB(0, 0, 0, 0), geom.NewUniformInsets(1), true))
+		value = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, 0, geom.NewUniformInsets(1), false), border.NewLine(draw.ARGB(0, 0, 0, 0), 0, geom.NewUniformInsets(1), true))
 	}
 	if s.unfocusedBorder != value {
 		s.unfocusedBorder = value

@@ -128,8 +128,9 @@ func (well *InkWell) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize 
 	}
 	r := well.ContentRect(false)
 	widget.DrawRoundedRectBase(gc, r, well.cornerRadius, well.currentBackgroundInk(), well.edgeInk)
-	r.InsetUniform(1.5)
-	gc.RoundedRect(r, well.cornerRadius)
+	const wellInset = 1.5
+	r.InsetUniform(wellInset)
+	gc.RoundedRect(r, well.cornerRadius-wellInset)
 	if p, ok := well.ink.(*draw.Pattern); ok {
 		gc.Save()
 		gc.Clip()
@@ -138,7 +139,7 @@ func (well *InkWell) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize 
 	} else {
 		gc.Fill(well.ink)
 	}
-	gc.RoundedRect(r, well.cornerRadius)
+	gc.RoundedRect(r, well.cornerRadius-wellInset)
 	gc.Stroke(well.edgeHighlightInk)
 }
 

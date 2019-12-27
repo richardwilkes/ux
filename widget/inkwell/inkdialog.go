@@ -40,7 +40,7 @@ func showDialog(well *InkWell) {
 		well:    well,
 		ink:     well.Ink(),
 		panel:   ux.NewPanel(),
-		preview: ux.NewPanel().SetBorder(border.NewCompound(border.NewLine(draw.Black, geom.NewUniformInsets(1), false), border.NewLine(draw.White, geom.NewUniformInsets(1), false))),
+		preview: ux.NewPanel().SetBorder(border.NewCompound(border.NewLine(draw.Black, 0, geom.NewUniformInsets(1), false), border.NewLine(draw.White, 0, geom.NewUniformInsets(1), false))),
 		right:   ux.NewPanel(),
 	}
 	flex.New().Columns(2).HAlign(align.Fill).Apply(d.panel)

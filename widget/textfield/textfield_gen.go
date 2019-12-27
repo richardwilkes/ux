@@ -37,8 +37,8 @@ func (m *managed) initialize() {
 	m.watermarkInk = draw.PlaceholderTextColor
 	m.minimumTextWidth = 10
 	m.blinkRate = time.Millisecond * 560
-	m.focusedBorder = border.NewCompound(border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(2), false), border.NewEmpty(geom.Insets{Top: 1, Left: 2, Bottom: 0, Right: 2}))
-	m.unfocusedBorder = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 2, Left: 3, Bottom: 1, Right: 3}))
+	m.focusedBorder = border.NewCompound(border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(2), false), border.NewEmpty(geom.Insets{Top: 1, Left: 2, Bottom: 0, Right: 2}))
+	m.unfocusedBorder = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, 0, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 2, Left: 3, Bottom: 1, Right: 3}))
 }
 
 // Font returns the font that will be used when drawing text content.
@@ -251,7 +251,7 @@ func (t *TextField) FocusedBorder() border.Border {
 // not appear correct. Pass in nil to use the default.
 func (t *TextField) SetFocusedBorder(value border.Border) *TextField {
 	if value == nil {
-		value = border.NewCompound(border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(2), false), border.NewEmpty(geom.Insets{Top: 1, Left: 2, Bottom: 0, Right: 2}))
+		value = border.NewCompound(border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(2), false), border.NewEmpty(geom.Insets{Top: 1, Left: 2, Bottom: 0, Right: 2}))
 	}
 	if t.focusedBorder != value {
 		t.focusedBorder = value
@@ -272,7 +272,7 @@ func (t *TextField) UnfocusedBorder() border.Border {
 // will not appear correct. Pass in nil to use the default.
 func (t *TextField) SetUnfocusedBorder(value border.Border) *TextField {
 	if value == nil {
-		value = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 2, Left: 3, Bottom: 1, Right: 3}))
+		value = border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, 0, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 2, Left: 3, Bottom: 1, Right: 3}))
 	}
 	if t.unfocusedBorder != value {
 		t.unfocusedBorder = value

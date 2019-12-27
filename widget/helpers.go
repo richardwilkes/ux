@@ -23,7 +23,7 @@ func DrawRoundedRectBase(gc draw.Context, rect geom.Rect, cornerRadius float64, 
 	gc.RoundedRect(rect, cornerRadius)
 	gc.Fill(fillInk)
 	rect.InsetUniform(0.5)
-	gc.RoundedRect(rect, cornerRadius)
+	gc.RoundedRect(rect, math.Max(cornerRadius-0.5, 0))
 	gc.Stroke(strokeInk)
 }
 

@@ -761,7 +761,7 @@ var widgetList = []*widgetVars{
 			{
 				Name:    "focusedBorder",
 				Type:    typeBorder,
-				Default: "border.NewCompound(border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(1), false), border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(1), true))",
+				Default: "border.NewCompound(border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(1), false), border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(1), true))",
 				Comment: "the border to use when focused. Note that the border should present the same insets as the unfocused border or the display will not appear correct",
 				ExtraImports: []string{
 					"github.com/richardwilkes/ux/draw",
@@ -774,7 +774,7 @@ var widgetList = []*widgetVars{
 			{
 				Name:    "unfocusedBorder",
 				Type:    typeBorder,
-				Default: "border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false), border.NewLine(draw.ARGB(0, 0, 0, 0), geom.NewUniformInsets(1), true))",
+				Default: "border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, 0, geom.NewUniformInsets(1), false), border.NewLine(draw.ARGB(0, 0, 0, 0), 0, geom.NewUniformInsets(1), true))",
 				Comment: "the border to use when not focused. Note that the border should present the same insets as the focused border or the display will not appear correct",
 				ExtraImports: []string{
 					"github.com/richardwilkes/ux/draw",
@@ -971,7 +971,7 @@ var widgetList = []*widgetVars{
 			{
 				Name:    "focusedBorder",
 				Type:    typeBorder,
-				Default: "border.NewCompound(border.NewLine(draw.ControlAccentColor, geom.NewUniformInsets(2), false), border.NewEmpty(geom.Insets{Top: 1, Left: 2, Bottom: 0, Right: 2}))",
+				Default: "border.NewCompound(border.NewLine(draw.ControlAccentColor, 0, geom.NewUniformInsets(2), false), border.NewEmpty(geom.Insets{Top: 1, Left: 2, Bottom: 0, Right: 2}))",
 				Comment: "the border to use when focused. Note that the border should present the same insets as the unfocused border or the display will not appear correct",
 				ExtraImports: []string{
 					"github.com/richardwilkes/ux/draw",
@@ -984,7 +984,7 @@ var widgetList = []*widgetVars{
 			{
 				Name:    "unfocusedBorder",
 				Type:    typeBorder,
-				Default: "border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 2, Left: 3, Bottom: 1, Right: 3}))",
+				Default: "border.NewCompound(border.NewLine(draw.ControlEdgeAdjColor, 0, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 2, Left: 3, Bottom: 1, Right: 3}))",
 				Comment: "the border to use when not focused. Note that the border should present the same insets as the focused border or the display will not appear correct",
 				ExtraImports: []string{
 					"github.com/richardwilkes/ux/draw",
