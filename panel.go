@@ -34,6 +34,7 @@ type Panel struct {
 	Tooltip                             *Panel
 	data                                map[string]interface{}
 	DrawCallback                        func(gc draw.Context, dirty geom.Rect, inLiveResize bool)
+	DrawOverCallback                    func(gc draw.Context, dirty geom.Rect, inLiveResize bool)
 	GainedFocusCallback                 func()
 	LostFocusCallback                   func()
 	MouseDownCallback                   func(where geom.Point, button, clickCount int, mod keys.Modifiers) bool
@@ -398,7 +399,12 @@ func (p *Panel) Draw(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
 			}
 		}
 		if p.border != nil {
+			gc.Save()
 			p.border.Draw(gc, p.ContentRect(true), inLiveResize)
+			gc.Restore()
+		}
+		if p.DrawOverCallback != nil {
+			p.DrawOverCallback(gc, dirty, inLiveResize)
 		}
 		gc.Restore()
 	}
