@@ -17,7 +17,7 @@ func Clear() {
 // HasType returns true if the specified data type exists on the clipboard.
 func HasType(dataType datatypes.DataType) bool {
 	for _, one := range Types() {
-		if one == dataType || one.UTI == dataType.UTI || one.Mime == dataType.Mime {
+		if dataType == one || (dataType.UTI != "" && dataType.UTI == one.UTI) || (dataType.Mime != "" && dataType.Mime == one.Mime) {
 			return true
 		}
 	}
