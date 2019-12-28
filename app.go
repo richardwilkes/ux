@@ -61,11 +61,17 @@ var (
 // QuitResponse is used to respond to requests for app termination.
 type QuitResponse int
 
+func init() {
+	// All init functions are run on the startup thread. Calling LockOSThread
+	// from an init function will cause the main function to be invoked on
+	// that thread.
+	runtime.LockOSThread()
+}
+
 // Start the application. This function does NOT return. No calls to anything
 // in the ux package tree should be made before this call, although setting
 // the various callbacks above can and should be done before this call.
 func Start() {
-	runtime.LockOSThread()
 	atexit.Register(runQuitCallback)
 	globals.Initialize()
 	osStart()
