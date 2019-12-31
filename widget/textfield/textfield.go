@@ -276,6 +276,9 @@ func (t *TextField) DefaultUpdateCursor(where geom.Point) *draw.Cursor {
 
 // DefaultKeyDown provides the default key down handling.
 func (t *TextField) DefaultKeyDown(keyCode int, ch rune, mod keys.Modifiers, repeat bool) bool {
+	if mod.OSMenuCmdModifierDown() {
+		return false
+	}
 	draw.HideCursorUntilMouseMoves()
 	switch keyCode {
 	case keys.Backspace.Code:
