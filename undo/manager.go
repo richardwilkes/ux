@@ -47,7 +47,7 @@ func (m *Manager) SetCostLimit(limit int) {
 	}
 }
 
-// Add an edit. If one or more undos have been performed, this will cause the
+// Add an edit. If one or more undos have been performed, this will cause
 // any redo capability beyond this point to be lost.
 func (m *Manager) Add(edit Edit) {
 	for i := m.index + 1; i < len(m.edits); i++ {

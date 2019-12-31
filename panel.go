@@ -60,6 +60,7 @@ type Panel struct {
 	FrameChangeCallback                 func()
 	FrameChangeInChildHierarchyCallback func(panel *Panel)
 	ScrollRectIntoViewCallback          func(rect geom.Rect) bool
+	ParentChangedCallback               func()
 	NeedsLayout                         bool
 	focusable                           bool
 	disabled                            bool
@@ -143,6 +144,9 @@ func (p *Panel) AddChild(child *Panel) {
 	p.children = append(p.children, child)
 	child.parent = p
 	p.NeedsLayout = true
+	if child.ParentChangedCallback != nil {
+		child.ParentChangedCallback()
+	}
 }
 
 // AddChildAtIndex adds child to this panel at the index, removing it from any
@@ -159,15 +163,24 @@ func (p *Panel) AddChildAtIndex(child *Panel, index int) {
 	}
 	child.parent = p
 	p.NeedsLayout = true
+	if child.ParentChangedCallback != nil {
+		child.ParentChangedCallback()
+	}
 }
 
 // RemoveAllChildren removes all child panels from this panel.
 func (p *Panel) RemoveAllChildren() {
-	for _, child := range p.children {
+	children := p.children
+	for _, child := range children {
 		child.parent = nil
 	}
 	p.children = nil
 	p.NeedsLayout = true
+	for _, child := range children {
+		if child.ParentChangedCallback != nil {
+			child.ParentChangedCallback()
+		}
+	}
 }
 
 // RemoveChild removes 'child' from this panel. If 'child' is not a direct
@@ -180,11 +193,15 @@ func (p *Panel) RemoveChild(child *Panel) {
 // If 'index' is out of range, nothing happens.
 func (p *Panel) RemoveChildAtIndex(index int) {
 	if index >= 0 && index < len(p.children) {
-		p.children[index].parent = nil
+		child := p.children[index]
+		child.parent = nil
 		copy(p.children[index:], p.children[index+1:])
 		p.children[len(p.children)-1] = nil
 		p.children = p.children[:len(p.children)-1]
 		p.NeedsLayout = true
+		if child.ParentChangedCallback != nil {
+			child.ParentChangedCallback()
+		}
 	}
 }
 
