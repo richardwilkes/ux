@@ -217,6 +217,17 @@ func (p *PopupMenu) ItemAt(index int) interface{} {
 	return nil
 }
 
+// SetItemAt sets the item at the specified index.
+func (p *PopupMenu) SetItemAt(index int, item interface{}) *PopupMenu {
+	if index >= 0 && index < len(p.items) {
+		if p.items[index] != item {
+			p.items[index] = item
+			p.MarkForRedraw()
+		}
+	}
+	return p
+}
+
 // Selected returns the currently selected item or nil.
 func (p *PopupMenu) Selected() interface{} {
 	return p.ItemAt(p.selectedIndex)
