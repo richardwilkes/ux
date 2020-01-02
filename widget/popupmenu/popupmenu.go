@@ -204,12 +204,22 @@ func (p *PopupMenu) RemoveItemAt(index int) *PopupMenu {
 	return p
 }
 
-// Selected returns the currently selected item or nil.
-func (p *PopupMenu) Selected() interface{} {
-	if p.selectedIndex >= 0 && p.selectedIndex < len(p.items) {
-		return p.items[p.selectedIndex]
+// ItemCount returns the number of items in this PopupMenu.
+func (p *PopupMenu) ItemCount() int {
+	return len(p.items)
+}
+
+// ItemAt returns the item at the specified index or nil.
+func (p *PopupMenu) ItemAt(index int) interface{} {
+	if index >= 0 && index < len(p.items) {
+		return p.items[index]
 	}
 	return nil
+}
+
+// Selected returns the currently selected item or nil.
+func (p *PopupMenu) Selected() interface{} {
+	return p.ItemAt(p.selectedIndex)
 }
 
 // SelectedIndex returns the currently selected item index.
