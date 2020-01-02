@@ -1,5 +1,6 @@
 # ux
-Go user experience framework for macOS, Windows & Linux.
+Go user experience framework for macOS (and at some point in the future,
+Windows and Linux).
 
 An example application can be found in the `example` directory.
 
