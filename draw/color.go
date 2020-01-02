@@ -495,25 +495,25 @@ func (c Color) HSB() (hue, saturation, brightness float64) {
 	r := c.Red()
 	g := c.Green()
 	b := c.Blue()
-	cmax := max(r, g, b)
-	cmin := min(r, g, b)
-	brightness = float64(cmax) / 255
-	if cmax != 0 {
-		saturation = float64(cmax-cmin) / float64(cmax)
+	cMax := max(r, g, b)
+	cMin := min(r, g, b)
+	brightness = float64(cMax) / 255
+	if cMax != 0 {
+		saturation = float64(cMax-cMin) / float64(cMax)
 	} else {
 		saturation = 0
 	}
 	if saturation == 0 {
 		hue = 0
 	} else {
-		div := float64(cmax - cmin)
-		rc := float64(cmax-r) / div
-		gc := float64(cmax-g) / div
-		bc := float64(cmax-b) / div
+		div := float64(cMax - cMin)
+		rc := float64(cMax-r) / div
+		gc := float64(cMax-g) / div
+		bc := float64(cMax-b) / div
 		switch {
-		case r == cmax:
+		case r == cMax:
 			hue = bc - gc
-		case g == cmax:
+		case g == cMax:
 			hue = 2 + rc - bc
 		default:
 			hue = 4 + gc - rc

@@ -21,8 +21,8 @@ func osDisplays() []*Display {
 	for i := range screens {
 		id := screens[i].DisplayID()
 		x, y, width, height := cg.DisplayBounds(id)
-		vx, vy, vwidth, vheight := screens[i].VisibleFrame()
-		_, fy, _, fheight := screens[i].Frame()
+		vx, vy, vWidth, vHeight := screens[i].VisibleFrame()
+		_, fy, _, fHeight := screens[i].Frame()
 		displays[i] = &Display{
 			Frame: geom.Rect{
 				Point: geom.Point{
@@ -37,11 +37,11 @@ func osDisplays() []*Display {
 			Usable: geom.Rect{
 				Point: geom.Point{
 					X: vx,
-					Y: y + (fy + fheight - (vy + vheight)),
+					Y: y + (fy + fHeight - (vy + vHeight)),
 				},
 				Size: geom.Size{
-					Width:  vwidth,
-					Height: vheight,
+					Width:  vWidth,
+					Height: vHeight,
 				},
 			},
 			ScalingFactor: screens[i].BackingScaleFactor(),

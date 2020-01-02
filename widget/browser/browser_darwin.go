@@ -12,12 +12,9 @@ package browser
 import (
 	"github.com/richardwilkes/macos/ns"
 	"github.com/richardwilkes/macos/wk"
-	"github.com/richardwilkes/toolbox/log/jot"
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux"
 )
-
-var browserCallbackLog = false
 
 type osBrowser = *wk.WebView
 
@@ -46,30 +43,18 @@ type webViewDelegate struct {
 }
 
 func (d *webViewDelegate) WebViewDidCommitNavigation(webView *wk.WebView, nav *wk.Navigation) {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDidCommitNavigation: %v", nav.Native())
-	}
+	// RAW: Do something?
 }
 
 func (d *webViewDelegate) WebViewDidStartProvisionalNavigation(webView *wk.WebView, nav *wk.Navigation) {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDidStartProvisionalNavigation: %v", nav.Native())
-	}
+	// RAW: Do something?
 }
 
 func (d *webViewDelegate) WebViewDidReceiveServerRedirectForProvisionNavigation(webView *wk.WebView, nav *wk.Navigation) {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDidReceiveServerRedirectForProvisionalNavigation: %v", nav.Native())
-	}
+	// RAW: Do something?
 }
 
 func (d *webViewDelegate) WebViewDidReceiveAuthenticationChallenge(webView *wk.WebView, challenge *ns.URLAuthenticationChallenge) (disposition ns.URLSessionAuthChallengeDisposition, credential *ns.URLCredential) {
-	if browserCallbackLog {
-		jot.Info("browserDidReceiveAuthenticationChallenge")
-	}
 	trust := challenge.ProtectionSpace().ServerTrust()
 	exceptions := trust.CopyExceptions()
 	trust.SetExceptions(exceptions)
@@ -78,45 +63,27 @@ func (d *webViewDelegate) WebViewDidReceiveAuthenticationChallenge(webView *wk.W
 }
 
 func (d *webViewDelegate) WebViewDidFailNavigationWithError(webView *wk.WebView, nav *wk.Navigation, errorMsg string) {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDidFailNavigation: %v: %s", nav.Native(), errorMsg)
-	}
+	// RAW: Do something?
 }
 
 func (d *webViewDelegate) WebViewDidFailProvisionalNavigationWithError(webView *wk.WebView, nav *wk.Navigation, errorMsg string) {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDidFailProvisionalNavigation: %v: %s", nav.Native(), errorMsg)
-	}
+	// RAW: Do something?
 }
 
 func (d *webViewDelegate) WebViewDidFinishNavigation(webView *wk.WebView, nav *wk.Navigation) {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDidFinishNavigation: %v", nav.Native())
-	}
+	// RAW: Do something?
 }
 
 func (d *webViewDelegate) WebViewWebContentProcessDidTerminate(webView *wk.WebView) {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Info("browserWebContentProcessDidTerminate")
-	}
+	// RAW: Do something?
 }
 
 func (d *webViewDelegate) WebViewDecidePolicyForNavigationAction(webView *wk.WebView, action *wk.NavigationAction) wk.NavigationActionPolicy {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDecidePolicyForNavigationAction: %v", action)
-	}
+	// RAW: Do something?
 	return wk.NavigationActionPolicyAllow
 }
 
 func (d *webViewDelegate) WebViewDecidePolicyForNavigationResponse(webView *wk.WebView, response *wk.NavigationResponse) wk.NavigationResponsePolicy {
-	if browserCallbackLog {
-		// RAW: Do something?
-		jot.Infof("browserDecidePolicyForNavigationResponse: %v", response)
-	}
+	// RAW: Do something?
 	return wk.NavigationResponsePolicyAllow
 }

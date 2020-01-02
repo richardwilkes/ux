@@ -189,12 +189,14 @@ func (f *Flex) buildGrid(children []layout.Layoutable) [][]layout.Layoutable {
 			if lastRow >= len(grid) {
 				grid = append(grid, make([]layout.Layoutable, f.columns))
 			}
+			// noinspection GoNilness
 			for column < f.columns && grid[row][column] != nil {
 				column++
 			}
 			endCount := column + hSpan
 			if endCount <= f.columns {
 				index := column
+				// noinspection GoNilness
 				for index < endCount && grid[row][index] == nil {
 					index++
 				}
@@ -211,6 +213,7 @@ func (f *Flex) buildGrid(children []layout.Layoutable) [][]layout.Layoutable {
 		for j := 0; j < vSpan; j++ {
 			pos := row + j
 			for k := 0; k < hSpan; k++ {
+				// noinspection GoNilness
 				grid[pos][column+k] = child
 			}
 		}
@@ -486,7 +489,6 @@ func (f *Flex) adjustRowHeights(height float64, grid [][]layout.Layoutable) []fl
 					}
 					minimumHeight := data.minSize.Height
 					if !data.vGrab || minimumHeight != 0 {
-						var h float64
 						if !data.vGrab || minimumHeight < 1 {
 							h = data.minCacheSize.Height
 						} else {
@@ -532,7 +534,6 @@ func (f *Flex) adjustRowHeights(height float64, grid [][]layout.Layoutable) []fl
 					}
 					minimumHeight := data.minSize.Height
 					if !data.vGrab || minimumHeight != 0 {
-						var h float64
 						if !data.vGrab || minimumHeight < 1 {
 							h = data.minCacheSize.Height
 						} else {

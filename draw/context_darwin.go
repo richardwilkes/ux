@@ -70,6 +70,9 @@ func (c *context) SetMiterLimit(limit float64) {
 }
 
 func (c *context) SetLineDash(phase float64, segments ...float64) {
+	// GoLand can't seem to figure out that segments is the exact same type
+	// in both places... so we're turning off the inspection.
+	// noinspection GoTypesCompatibility
 	c.gc.SetLineDash(phase, segments...)
 }
 

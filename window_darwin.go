@@ -181,11 +181,11 @@ func (w *Window) osFlushDrawing() {
 }
 
 func (w *Window) osRegisterDragTypes(dt ...datatypes.DataType) {
-	utis := make([]string, len(dt))
+	types := make([]string, len(dt))
 	for i := range dt {
-		utis[i] = dt[i].UTI
+		types[i] = dt[i].UTI
 	}
-	w.wnd.RegisterForDraggedTypes(utis...)
+	w.wnd.RegisterForDraggedTypes(types...)
 }
 
 type windowDelegate struct {

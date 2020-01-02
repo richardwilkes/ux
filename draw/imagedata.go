@@ -111,8 +111,8 @@ func (imgData *ImageData) UnmarshalJSON(data []byte) error {
 	imgData.Pixels = make([]Color, tmp.Width*tmp.Height)
 	pixelBuffer := make([]byte, 4)
 	for i := range imgData.Pixels {
-		n, err := r.Read(pixelBuffer)
-		if err != nil {
+		var n int
+		if n, err = r.Read(pixelBuffer); err != nil {
 			if err == io.EOF {
 				break
 			}

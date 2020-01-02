@@ -21,8 +21,8 @@ type osMenu = *ns.Menu
 func osNewMenu(title string, updater Updater) osMenu {
 	var u func(*ns.Menu)
 	if updater != nil {
-		u = func(nsmenu *ns.Menu) {
-			updater(&Menu{native: nsmenu})
+		u = func(m *ns.Menu) {
+			updater(&Menu{native: m})
 		}
 	}
 	return ns.MenuInitWithTitle(title, u)

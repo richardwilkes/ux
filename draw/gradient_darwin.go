@@ -44,16 +44,16 @@ func (g *Gradient) draw(gc Context) {
 	colorSpace := cg.ColorSpaceCreateDeviceRGB()
 	count := len(g.Stops)
 	components := make([]float64, count*4)
-	locs := make([]float64, count)
+	locations := make([]float64, count)
 	for i, one := range g.Stops {
 		j := i * 4
 		components[j] = one.Color.Color.RedIntensity()
 		components[j+1] = one.Color.Color.GreenIntensity()
 		components[j+2] = one.Color.Color.BlueIntensity()
 		components[j+3] = one.Color.Color.AlphaIntensity()
-		locs[i] = one.Location
+		locations[i] = one.Location
 	}
-	gradient := cg.GradientCreateWithColorComponents(colorSpace, components, locs)
+	gradient := cg.GradientCreateWithColorComponents(colorSpace, components, locations)
 	gradient.Retain()
 	colorSpace.Release()
 	sx := rect.X + rect.Width*g.Start.X

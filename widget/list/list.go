@@ -87,18 +87,18 @@ func (l *List) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 	size := geom.Size{Width: hint.Width, Height: height}
 	for i, row := range l.rows {
 		cell := l.factory.CreateCell(l.AsPanel(), row, i, false, false)
-		_, cpref, cmax := cell.Sizes(size)
-		cpref.GrowToInteger()
-		cmax.GrowToInteger()
-		if pref.Width < cpref.Width {
-			pref.Width = cpref.Width
+		_, cPref, cMax := cell.Sizes(size)
+		cPref.GrowToInteger()
+		cMax.GrowToInteger()
+		if pref.Width < cPref.Width {
+			pref.Width = cPref.Width
 		}
-		if max.Width < cmax.Width {
-			max.Width = cmax.Width
+		if max.Width < cMax.Width {
+			max.Width = cMax.Width
 		}
 		if height < 1 {
-			pref.Height += cpref.Height
-			max.Height += cmax.Height
+			pref.Height += cPref.Height
+			max.Height += cMax.Height
 		}
 	}
 	if height >= 1 {
@@ -128,11 +128,11 @@ func (l *List) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) 
 	if index >= 0 {
 		cellHeight := math.Ceil(l.factory.CellHeight())
 		count := len(l.rows)
-		ymax := dirty.Y + dirty.Height
+		yMax := dirty.Y + dirty.Height
 		focused := l.Focused()
 		selCount := l.Selection.Count()
 		rect := l.ContentRect(false)
-		for index < count && y < ymax {
+		for index < count && y < yMax {
 			selected := l.Selection.State(index)
 			cell := l.factory.CreateCell(l.AsPanel(), l.rows[index], index, selected, focused && selected && selCount == 1)
 			cellRect := geom.Rect{Point: geom.Point{X: rect.X, Y: y}, Size: geom.Size{Width: rect.Width, Height: cellHeight}}

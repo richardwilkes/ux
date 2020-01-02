@@ -236,12 +236,12 @@ func newImage(width, height int, scale float64, img osImage) (*Image, error) {
 	return (*Image)(ref), nil
 }
 
-func (r *imageRef) Key() string {
-	return r.key
+func (img *imageRef) Key() string {
+	return img.key
 }
 
-func (r *imageRef) Release() {
-	r.osDispose()
+func (img *imageRef) Release() {
+	img.osDispose()
 }
 
 // DistillImageURL distills a URL string into either a URL string that likely

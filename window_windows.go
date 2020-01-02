@@ -192,16 +192,16 @@ func RegisterWindowClass() {
 	windowClass = win32.RegisterClassEx(&wcx)
 }
 
-func wndProc(wnd win32.HWND, msg uint32, wparam win32.WPARAM, lparam win32.LPARAM) win32.LRESULT {
+func wndProc(wnd win32.HWND, msg uint32, wParam win32.WPARAM, lParam win32.LPARAM) win32.LRESULT {
 	switch msg {
 	case win32.WM_COMMAND:
 		if MenuItemSelectionCallback != nil {
-			MenuItemSelectionCallback(int(wparam))
+			MenuItemSelectionCallback(int(wParam))
 		}
 		return 0
 	case win32.WM_WINDOWPOSCHANGED:
 		if w, ok := nativeWindowMap[wnd]; ok && w.IsValid() {
-			wp := (*win32.WINDOWPOS)(unsafe.Pointer(lparam))
+			wp := (*win32.WINDOWPOS)(unsafe.Pointer(lParam))
 			if wp.Flags&win32.SWP_NOSIZE == 0 {
 				w.ValidateLayout()
 			}
@@ -234,7 +234,7 @@ func wndProc(wnd win32.HWND, msg uint32, wparam win32.WPARAM, lparam win32.LPARA
 		return 0
 	case win32.WM_ACTIVATE:
 		if w, ok := nativeWindowMap[wnd]; ok {
-			if wparam&(win32.WA_ACTIVE|win32.WA_CLICKACTIVE) != 0 {
+			if wParam&(win32.WA_ACTIVE|win32.WA_CLICKACTIVE) != 0 {
 				if w.GainedFocusCallback != nil {
 					w.GainedFocusCallback()
 				}
@@ -249,10 +249,10 @@ func wndProc(wnd win32.HWND, msg uint32, wparam win32.WPARAM, lparam win32.LPARA
 		}
 	case win32.WM_INITMENUPOPUP:
 		if MenuValidationCallback != nil {
-			MenuValidationCallback(win32.HMENU(wparam))
+			MenuValidationCallback(win32.HMENU(wParam))
 		}
 	}
-	return win32.DefWindowProc(wnd, msg, wparam, lparam)
+	return win32.DefWindowProc(wnd, msg, wParam, lParam)
 }
 
 func styleMaskToWin32Style(styleMask StyleMask) (style, exStyle win32.DWORD) {

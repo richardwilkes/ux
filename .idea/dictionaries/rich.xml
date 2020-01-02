@@ -2,9 +2,50 @@
   <dictionary name="rich">
     <words>
       <w>affero</w>
+      <w>aiff</w>
+      <w>argb</w>
+      <w>backquote</w>
+      <w>bfloat</w>
+      <w>borderless</w>
+      <w>byposition</w>
+      <w>consolas</w>
+      <w>datatypes</w>
+      <w>errcheck</w>
+      <w>focusables</w>
+      <w>ftype</w>
+      <w>gosec</w>
+      <w>hgdiobj</w>
+      <w>hmenu</w>
+      <w>hsba</w>
+      <w>hwnd</w>
+      <w>imgurl</w>
+      <w>layoutable</w>
+      <w>liberapay</w>
       <w>licensable</w>
+      <w>marshaler</w>
+      <w>menuiteminfo</w>
+      <w>miim</w>
       <w>mozilla</w>
+      <w>mpeg</w>
+      <w>otechie</w>
+      <w>pather</w>
+      <w>patreon</w>
+      <w>prefs</w>
+      <w>richardwilkes</w>
+      <w>segoe</w>
+      <w>structcheck</w>
+      <w>subprocess</w>
+      <w>tidelift</w>
       <w>trollworks</w>
+      <w>uintptr</w>
+      <w>undos</w>
+      <w>unemphasized</w>
+      <w>unhide</w>
+      <w>unmarshaler</w>
+      <w>unpremultiply</w>
+      <w>usernames</w>
+      <w>xbitmap</w>
+      <w>xmath</w>
     </words>
   </dictionary>
 </component>

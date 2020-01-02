@@ -83,7 +83,7 @@ func (f *Flow) Sizes(hint geom.Size) (min, pref, max geom.Size) {
 	var maxHeight float64
 	var largestChildMin geom.Size
 	for _, child := range f.target.ChildrenForLayout() {
-		min, pref, _ := child.Sizes(geom.Size{})
+		min, pref, _ = child.Sizes(geom.Size{})
 		if largestChildMin.Width < min.Width {
 			largestChildMin.Width = min.Width
 		}

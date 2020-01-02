@@ -197,7 +197,7 @@ func (m *Manager) trimForLimit() {
 	// If we get here, then all edits up to the current index fit within the
 	// cost limit. Look at those beyond the current index and trim out any
 	// that go over the limit.
-	for i := m.index + 1; i < len(m.edits); i++ {
+	for i = m.index + 1; i < len(m.edits); i++ {
 		if remaining -= m.cost(m.edits[i]); remaining >= 0 {
 			continue
 		}

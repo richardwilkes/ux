@@ -27,16 +27,16 @@ do
         *) echo "Invalid argument: $arg"; BAIL=1 ;;
     esac
 done
-if [ ! -z $BAIL ]; then
+if [ -n "$BAIL" ]; then
     exit 1
 fi
 
 # Setup the tools we'll need
 TOOLS_DIR=$PWD/tools
-mkdir -p $TOOLS_DIR
-if [ ! -e $TOOLS_DIR/mkembeddedfs ] || [ "$($TOOLS_DIR/mkembeddedfs -v 2>&1 || true)x" != "1.0.2x" ]; then
+mkdir -p "$TOOLS_DIR"
+if [ ! -e "$TOOLS_DIR/mkembeddedfs" ] || [ "$("$TOOLS_DIR/mkembeddedfs" -v 2>&1 || true)x" != "1.0.2x" ]; then
     echo -e "\033[33mInstalling version 1.0.2 of mkembeddedfs into $TOOLS_DIR...\033[0m"
-    cd $TOOLS_DIR
+    cd "$TOOLS_DIR"
     git clone --quiet https://github.com/richardwilkes/toolbox
     cd toolbox
     git checkout --quiet v1.21.1
@@ -47,9 +47,9 @@ if [ ! -e $TOOLS_DIR/mkembeddedfs ] || [ "$($TOOLS_DIR/mkembeddedfs -v 2>&1 || t
     cd ..
 fi
 if [ -z $SKIP_LINTERS ]; then
-    if [ ! -e $TOOLS_DIR/golangci-lint ] || [ "$($TOOLS_DIR/golangci-lint version 2>&1 | awk '{ print $4 }' || true)x" != "1.22.2x" ]; then
+    if [ ! -e "$TOOLS_DIR/golangci-lint" ] || [ "$("$TOOLS_DIR/golangci-lint" version 2>&1 | awk '{ print $4 }' || true)x" != "1.22.2x" ]; then
         echo -e "\033[33mInstalling version 1.22.2 of golangci-lint into $TOOLS_DIR...\033[0m"
-        curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $TOOLS_DIR v1.22.2
+        curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$TOOLS_DIR" v1.22.2
     fi
 fi
 export PATH=$TOOLS_DIR:$PATH

@@ -10,8 +10,9 @@
 package draw
 
 import (
-	"github.com/richardwilkes/win32"
 	"syscall"
+
+	"github.com/richardwilkes/win32"
 )
 
 // Font holds an instance of a platform font.
@@ -66,7 +67,7 @@ func osFontFamilies() []string {
 	hdc := win32.GetDC(0)
 	defer win32.ReleaseDC(0, hdc)
 	all := make(map[string]bool)
-	win32.EnumFontFamiliesExW(hdc, &win32.LOGFONT{LfCharSet: win32.DEFAULT_CHARSET}, func(lf *win32.LOGFONT, tm *win32.NEWTEXTMETRIC, fontType win32.DWORD, parm win32.LPARAM) int {
+	win32.EnumFontFamiliesExW(hdc, &win32.LOGFONT{LfCharSet: win32.DEFAULT_CHARSET}, func(lf *win32.LOGFONT, tm *win32.NEWTEXTMETRIC, fontType win32.DWORD, lParam win32.LPARAM) int {
 		if fontType == win32.TRUETYPE_FONTTYPE && lf.LfFaceName[0] != '@' {
 			all[syscall.UTF16ToString(lf.LfFaceName[:])] = true
 		}

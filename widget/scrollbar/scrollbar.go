@@ -316,23 +316,23 @@ func (s *ScrollBar) partRect(which scrollbarPart) geom.Rect {
 		rect.Height = s.barSize
 	case pageUp:
 		rect = s.partRect(lineUp)
-		thumb := s.partRect(thumb)
+		t := s.partRect(thumb)
 		if s.horizontal {
 			rect.X += rect.Width
-			rect.Width = thumb.X - rect.X
+			rect.Width = t.X - rect.X
 		} else {
 			rect.Y += rect.Height
-			rect.Height = thumb.Y - rect.Y
+			rect.Height = t.Y - rect.Y
 		}
 	case pageDown:
 		rect = s.partRect(lineDown)
-		thumb := s.partRect(thumb)
+		t := s.partRect(thumb)
 		if s.horizontal {
-			x := thumb.X + thumb.Width
+			x := t.X + t.Width
 			rect.Width = rect.X - x
 			rect.X = x
 		} else {
-			y := thumb.Y + thumb.Height
+			y := t.Y + t.Height
 			rect.Height = rect.Y - y
 			rect.Y = y
 		}
