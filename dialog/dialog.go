@@ -184,6 +184,20 @@ func breakTextIntoLabels(panel *ux.Panel, text string, font *draw.Font) {
 	}
 }
 
+// ErrorDialogWithError displays a standard error dialog with the specified
+// primary message and extracts the message from the error for its detail.
+// The full error will be logged via jot.Error(). Embedded line feeds are OK.
+func ErrorDialogWithError(primary string, detail error) {
+	var msg string
+	if e, ok := detail.(*errs.Error); ok {
+		jot.Error(detail)
+		msg = e.Message()
+	} else {
+		msg = detail.Error()
+	}
+	ErrorDialogWithMessage(primary, msg)
+}
+
 // ErrorDialogWithMessage displays a standard error dialog with the specified
 // primary and detail messages. Embedded line feeds are OK.
 func ErrorDialogWithMessage(primary, detail string) {
