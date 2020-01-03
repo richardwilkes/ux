@@ -10,10 +10,10 @@ github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942 h1:A7GG7zcGjl3jqAqGPmcNjd
 github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942/go.mod h1:eCbImbZ95eXtAUIbLAuAVnBnwf83mjf6QIVH8SHYwqQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/richardwilkes/macos v0.0.0-20200103200354-d9c96607747d h1:8zDndkwkxkiWugr7YBfh1DkvQdqrfvA7yQIx5mDCkyw=
-github.com/richardwilkes/macos v0.0.0-20200103200354-d9c96607747d/go.mod h1:ZL4GKqeZ58S9VCanzBn7nHsazL2yjgjeoNlPWtuOrpg=
-github.com/richardwilkes/toolbox v1.21.3 h1:cwt7AevD6spfU2yO8I+vudaDy5kM//LC33uj3bOZii4=
-github.com/richardwilkes/toolbox v1.21.3/go.mod h1:yOuzWx4rgI1Dc6YSHGom//gPDp4PCXj/CJx3ZNlMTzI=
+github.com/richardwilkes/macos v0.0.0-20200103202712-bf76ba8709fd h1:mSV3F0P0PZAK4GwATULHqwEe4MfNL1oynNP+Lpf+hBM=
+github.com/richardwilkes/macos v0.0.0-20200103202712-bf76ba8709fd/go.mod h1:mX3Gvj0YC2L3wiVyJZVyB8M/sGjC6MtrkOyzYR2iqv8=
+github.com/richardwilkes/toolbox v1.22.0 h1:LRmiAxjiDILq7NAT0oBNrFXS10aNTa00DDrXp9IDIGU=
+github.com/richardwilkes/toolbox v1.22.0/go.mod h1:yOuzWx4rgI1Dc6YSHGom//gPDp4PCXj/CJx3ZNlMTzI=
 github.com/richardwilkes/win32 v0.0.0-20190904195159-ad2019dfff16 h1:FNFuheoJBSW+earD0+E8B4p0koSJyu3oS7Envtj2u70=
 github.com/richardwilkes/win32 v0.0.0-20190904195159-ad2019dfff16/go.mod h1:TnctiBPerZJhQBYs5B1OG4aBG0Lx5b1CYTTNx8HCqgU=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
