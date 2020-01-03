@@ -33,7 +33,7 @@ fi
 
 # Setup the tools we'll need
 TOOLS_DIR=$PWD/tools
-MKEMBEDEDFS_VERSION=1.21.3
+MKEMBEDEDFS_VERSION=1.22.0
 GOLANGCI_LINT_VERSION=1.22.2
 mkdir -p "$TOOLS_DIR"
 if [ ! -e "$TOOLS_DIR/mkembeddedfs" ] || [ "$("$TOOLS_DIR/mkembeddedfs" -v || true)x" != "${MKEMBEDEDFS_VERSION}x" ]; then
