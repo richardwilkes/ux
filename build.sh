@@ -33,10 +33,10 @@ fi
 
 # Setup the tools we'll need
 TOOLS_DIR=$PWD/tools
-MKEMBEDEDFS_VERSION=1.21.2
+MKEMBEDEDFS_VERSION=1.21.3
 GOLANGCI_LINT_VERSION=1.22.2
 mkdir -p "$TOOLS_DIR"
-if [ ! -e "$TOOLS_DIR/mkembeddedfs" ] || [ "$("$TOOLS_DIR/mkembeddedfs" -v 2>&1 || true)x" != "${MKEMBEDEDFS_VERSION}x" ]; then
+if [ ! -e "$TOOLS_DIR/mkembeddedfs" ] || [ "$("$TOOLS_DIR/mkembeddedfs" -v || true)x" != "${MKEMBEDEDFS_VERSION}x" ]; then
     echo -e "\033[33mInstalling version $MKEMBEDEDFS_VERSION of mkembeddedfs into $TOOLS_DIR...\033[0m"
     cd "$TOOLS_DIR"
     git clone --quiet https://github.com/richardwilkes/toolbox
