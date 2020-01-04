@@ -9,6 +9,8 @@
 
 package draw
 
+import "github.com/richardwilkes/toolbox/errs"
+
 type osFont struct {
 }
 
@@ -64,6 +66,11 @@ func osFontFamilies() []string {
 func osNewFont(desc FontDescriptor) *Font {
 	// RAW: Implement
 	return &Font{}
+}
+
+func osNewFontFromData(data []byte) (*Font, error) {
+	// RAW: Implement
+	return nil, errs.New("unable to load font from data")
 }
 
 func (f *Font) osWidth(str string) float64 {

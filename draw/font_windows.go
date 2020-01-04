@@ -12,6 +12,7 @@ package draw
 import (
 	"syscall"
 
+	"github.com/richardwilkes/toolbox/errs"
 	"github.com/richardwilkes/win32"
 )
 
@@ -105,6 +106,11 @@ func osNewFont(desc FontDescriptor) *Font {
 		osFont:     osFont{ref: hFont},
 		monospaced: (tm.TmPitchAndFamily & win32.TMPF_FIXED_PITCH) == 0,
 	}
+}
+
+func osNewFontFromData(data []byte) (*Font, error) {
+	// RAW: Implement
+	return nil, errs.New("unable to load font from data")
 }
 
 func (f *Font) osWidth(str string) float64 {

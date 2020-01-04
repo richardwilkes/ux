@@ -78,6 +78,18 @@ func NewFont(desc FontDescriptor) *Font {
 	return f
 }
 
+// NewFontFromData creates a new font from the supplied data, typically the
+// contents of a font file.
+func NewFontFromData(data []byte) (*Font, error) {
+	f, err := osNewFontFromData(data)
+	if err != nil {
+		return nil, err
+	}
+	fontCache[f.Descriptor()] = f
+	f.refCount++
+	return f, nil
+}
+
 // Descriptor returns the FontDescriptor for this font.
 func (f *Font) Descriptor() FontDescriptor {
 	return f.desc

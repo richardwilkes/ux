@@ -12,13 +12,17 @@ package draw
 import (
 	"github.com/richardwilkes/macos/cf"
 	"github.com/richardwilkes/macos/ct"
+	"github.com/richardwilkes/toolbox/errs"
 )
 
 type osFont struct {
 	ref ct.Font
 }
 
-var osSystemFontMapping = make(map[string]ct.FontUIFontType)
+var (
+	osSystemFontMapping = make(map[string]ct.FontUIFontType)
+	osLoadedFontMapping = make(map[string]ct.FontDescriptor)
+)
 
 func osInitSystemFonts() {
 	for _, one := range []ct.FontUIFontType{
@@ -50,18 +54,18 @@ func osInitSystemFonts() {
 		ct.FontUIFontToolTip,
 		ct.FontUIFontControlContent,
 	} {
-		osSystemFontMapping[fontDesc(one).Family] = one
+		osSystemFontMapping[osiFontDesc(one).Family] = one
 	}
-	UserFont = NewFont(fontDesc(ct.FontUIFontUser))
-	UserMonospacedFont = NewFont(fontDesc(ct.FontUIFontUserFixedPitch))
-	SystemFont = NewFont(fontDesc(ct.FontUIFontSystem))
-	EmphasizedSystemFont = NewFont(fontDesc(ct.FontUIFontEmphasizedSystem))
-	SmallSystemFont = NewFont(fontDesc(ct.FontUIFontSmallSystem))
-	SmallEmphasizedSystemFont = NewFont(fontDesc(ct.FontUIFontSmallEmphasizedSystem))
-	ViewsFont = NewFont(fontDesc(ct.FontUIFontViews))
-	LabelFont = NewFont(fontDesc(ct.FontUIFontLabel))
-	MenuFont = NewFont(fontDesc(ct.FontUIFontMenuItem))
-	MenuCmdKeyFont = NewFont(fontDesc(ct.FontUIFontMenuItemCmdKey))
+	UserFont = NewFont(osiFontDesc(ct.FontUIFontUser))
+	UserMonospacedFont = NewFont(osiFontDesc(ct.FontUIFontUserFixedPitch))
+	SystemFont = NewFont(osiFontDesc(ct.FontUIFontSystem))
+	EmphasizedSystemFont = NewFont(osiFontDesc(ct.FontUIFontEmphasizedSystem))
+	SmallSystemFont = NewFont(osiFontDesc(ct.FontUIFontSmallSystem))
+	SmallEmphasizedSystemFont = NewFont(osiFontDesc(ct.FontUIFontSmallEmphasizedSystem))
+	ViewsFont = NewFont(osiFontDesc(ct.FontUIFontViews))
+	LabelFont = NewFont(osiFontDesc(ct.FontUIFontLabel))
+	MenuFont = NewFont(osiFontDesc(ct.FontUIFontMenuItem))
+	MenuCmdKeyFont = NewFont(osiFontDesc(ct.FontUIFontMenuItemCmdKey))
 }
 
 func osFontFamilies() []string {
@@ -85,11 +89,20 @@ func osFontFamilies() []string {
 
 func osNewFont(desc FontDescriptor) *Font {
 	var ref ct.Font
-	if fontType, exists := osSystemFontMapping[desc.Family]; exists {
+	var exists bool
+	var fontType ct.FontUIFontType
+	var fd ct.FontDescriptor
+	if fontType, exists = osSystemFontMapping[desc.Family]; exists {
 		ref = ct.FontCreateUIFontForLanguage(fontType, desc.Size, "")
+	} else if fd, exists = osLoadedFontMapping[desc.Family]; exists {
+		ref = ct.FontCreateWithFontDescriptor(fd, desc.Size, nil)
 	} else {
 		ref = ct.FontCreateWithName(desc.Family, desc.Size, nil)
 	}
+	return osiNewFont(ref, desc)
+}
+
+func osiNewFont(ref ct.Font, desc FontDescriptor) *Font {
 	bold := desc.Bold
 	italic := desc.Italic
 	if bold || italic {
@@ -127,8 +140,24 @@ func osNewFont(desc FontDescriptor) *Font {
 	}
 }
 
+func osNewFontFromData(data []byte) (*Font, error) {
+	cfData := cf.DataCreate(data)
+	defer cfData.Release()
+	desc := ct.FontManagerCreateFontDescriptorFromData(cfData)
+	if desc == 0 {
+		return nil, errs.New("unable to create font descriptor from data")
+	}
+	ref := ct.FontCreateWithFontDescriptor(desc, 0, nil)
+	if ref == 0 {
+		return nil, errs.New("unable to create font from data")
+	}
+	fd := osiFontDescFromFont(ref)
+	osLoadedFontMapping[fd.Family] = desc
+	return osiNewFont(ref, osiFontDescFromFont(ref)), nil
+}
+
 func (f *Font) osWidth(str string) float64 {
-	as := f.createAttributedString(str)
+	as := f.osiCreateAttributedString(str)
 	line := ct.LineCreateWithAttributedString(cf.AttributedString(as))
 	width := line.GetTypographicBounds(nil, nil, nil)
 	line.Release()
@@ -137,7 +166,7 @@ func (f *Font) osWidth(str string) float64 {
 }
 
 func (f *Font) osIndexForPosition(x float64, str string) int {
-	as := f.createAttributedString(str)
+	as := f.osiCreateAttributedString(str)
 	line := ct.LineCreateWithAttributedString(cf.AttributedString(as))
 	i := line.GetStringIndexForPosition(x, 0)
 	line.Release()
@@ -146,7 +175,7 @@ func (f *Font) osIndexForPosition(x float64, str string) int {
 }
 
 func (f *Font) osPositionForIndex(index int, str string) float64 {
-	as := f.createAttributedString(str)
+	as := f.osiCreateAttributedString(str)
 	line := ct.LineCreateWithAttributedString(cf.AttributedString(as))
 	x := line.GetOffsetForStringIndex(index, nil)
 	line.Release()
@@ -162,7 +191,7 @@ func (f *Font) osDispose() {
 	}
 }
 
-func (f *Font) createAttributedString(str string) cf.MutableAttributedString {
+func (f *Font) osiCreateAttributedString(str string) cf.MutableAttributedString {
 	as := cf.AttributedStringCreateMutable(0)
 	as.BeginEditing()
 	s := cf.StringCreateWithString(str)
@@ -172,8 +201,11 @@ func (f *Font) createAttributedString(str string) cf.MutableAttributedString {
 	return as
 }
 
-func fontDesc(fontType ct.FontUIFontType) FontDescriptor {
-	f := ct.FontCreateUIFontForLanguage(fontType, 0, "")
+func osiFontDesc(fontType ct.FontUIFontType) FontDescriptor {
+	return osiFontDescFromFont(ct.FontCreateUIFontForLanguage(fontType, 0, ""))
+}
+
+func osiFontDescFromFont(f ct.Font) FontDescriptor {
 	traits := f.GetSymbolicTraits()
 	return FontDescriptor{
 		Family: f.FamilyName(),
