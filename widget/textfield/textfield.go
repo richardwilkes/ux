@@ -131,7 +131,7 @@ func (t *TextField) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize b
 	default:
 		gc.DrawString(rect.X+t.scrollOffset, textTop, t.font, t.textInk, string(t.runes))
 	}
-	if !t.HasSelectionRange() && t.Focused() {
+	if !t.HasSelectionRange() && t.Enabled() && t.Focused() {
 		if t.showCursor {
 			x := rect.X + t.font.Width(string(t.runes[:t.selectionEnd])) + t.scrollOffset
 			gc.MoveTo(x, textTop)
@@ -160,7 +160,7 @@ func (t *TextField) currentBackgroundInk() draw.Ink {
 
 func (t *TextField) scheduleBlink() {
 	window := t.Window()
-	if window != nil && window.IsValid() && !t.pending && t.Focused() {
+	if window != nil && window.IsValid() && !t.pending && t.Enabled() && t.Focused() {
 		t.pending = true
 		ux.InvokeAfter(t.blink, t.blinkRate)
 	}
