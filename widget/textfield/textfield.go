@@ -94,7 +94,7 @@ func (t *TextField) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 
 // DefaultDraw provides the default drawing.
 func (t *TextField) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
-	gc.Rect(dirty)
+	gc.Rect(t.ContentRect(true))
 	gc.Fill(t.currentBackgroundInk())
 	rect := t.ContentRect(false)
 	gc.Rect(rect)

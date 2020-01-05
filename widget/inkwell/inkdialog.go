@@ -55,11 +55,12 @@ func showDialog(well *InkWell) {
 	flex.New().Columns(2).HAlign(align.Fill).Apply(d.panel)
 	flex.NewData().VAlign(align.Start).SizeHint(geom.Size{Width: 64, Height: 64}).Apply(d.preview)
 	d.preview.DrawCallback = func(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
+		b := d.preview.ContentRect(false)
 		if p, ok := d.ink.(*draw.Pattern); ok {
 			gc.Clip()
-			p.Image().DrawInRect(gc, d.preview.ContentRect(false))
+			p.Image().DrawInRect(gc, b)
 		} else {
-			gc.Rect(dirty)
+			gc.Rect(b)
 			gc.Fill(d.ink)
 		}
 	}

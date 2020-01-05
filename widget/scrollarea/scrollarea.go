@@ -75,7 +75,7 @@ func (s *ScrollArea) SetContent(content *ux.Panel, behave behavior.Behavior) *Sc
 
 // DefaultDraw provides the default drawing.
 func (s *ScrollArea) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
-	gc.Rect(dirty)
+	gc.Rect(s.ContentRect(true))
 	gc.Fill(s.backgroundInk)
 }
 

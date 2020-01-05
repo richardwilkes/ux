@@ -25,7 +25,7 @@ func NewBase() *ux.Panel {
 	tip := ux.NewPanel()
 	tip.SetBorder(border.NewCompound(border.NewLine(draw.UnemphasizedSelectedContentBackgroundColor, 0, geom.NewUniformInsets(1), false), border.NewEmpty(geom.Insets{Top: 2, Left: 4, Bottom: 2, Right: 4})))
 	tip.DrawCallback = func(gc draw.Context, dirty geom.Rect, inLiveResize bool) {
-		gc.Rect(dirty)
+		gc.Rect(tip.ContentRect(true))
 		gc.Fill(draw.ControlBackgroundColor)
 	}
 	return tip
