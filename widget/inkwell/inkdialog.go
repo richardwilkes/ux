@@ -11,6 +11,7 @@ package inkwell
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/richardwilkes/toolbox/i18n"
 	"github.com/richardwilkes/toolbox/log/jot"
@@ -130,20 +131,19 @@ func (d *inkDialog) addEntryField(title string, value int) *textfield.TextField 
 	l := label.New().SetText(title).SetHAlign(align.End)
 	flex.NewData().HAlign(align.End).Apply(l)
 	d.right.AddChild(l.AsPanel())
-	field := textfield.New().SetText(strconv.Itoa(value)).SetMinimumTextWidth(50)
+	field := textfield.New().SetText(strconv.Itoa(value)).SetWatermark("0").SetMinimumTextWidth(50)
 	flex.NewData().HGrab(true).HAlign(align.Fill).Apply(field)
 	field.ValidateCallback = func() bool {
-		v, err := strconv.Atoi(field.Text())
-		valid := err == nil && v >= 0 && v <= 255
+		_, valid := d.parseField(field)
 		if valid {
 			var r int
-			if r, err = strconv.Atoi(d.redField.Text()); err == nil {
+			if r, valid = d.parseField(d.redField); valid {
 				var g int
-				if g, err = strconv.Atoi(d.greenField.Text()); err == nil {
+				if g, valid = d.parseField(d.greenField); valid {
 					var b int
-					if b, err = strconv.Atoi(d.blueField.Text()); err == nil {
+					if b, valid = d.parseField(d.blueField); valid {
 						var a int
-						if a, err = strconv.Atoi(d.alphaField.Text()); err == nil {
+						if a, valid = d.parseField(d.alphaField); valid {
 							d.ink = draw.ARGB(float64(a)/255, r, g, b)
 							d.preview.MarkForRedraw()
 						}
@@ -157,6 +157,15 @@ func (d *inkDialog) addEntryField(title string, value int) *textfield.TextField 
 	d.validationFields = append(d.validationFields, field)
 	d.right.AddChild(field.AsPanel())
 	return field
+}
+
+func (d *inkDialog) parseField(field *textfield.TextField) (int, bool) {
+	text := strings.TrimSpace(field.Text())
+	if text == "" {
+		text = "0"
+	}
+	v, err := strconv.Atoi(text)
+	return v, err == nil && v >= 0 && v <= 255
 }
 
 func (d *inkDialog) adjustOKButton(field *textfield.TextField, valid bool) {
