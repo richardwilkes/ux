@@ -208,5 +208,35 @@ func (c *context) ClosePath() {
 }
 
 func (c *context) Dispose() {
+	if images, ok := contextToImageCache[c.gc]; ok {
+		delete(contextToImageCache, c.gc)
+		for _, img := range images {
+			var contexts []OSContext
+			if contexts, ok = imageToContextCache[img]; ok {
+				for i := range contexts {
+					if c.gc == contexts[i] {
+						if len(contexts) == 1 {
+							delete(imageToContextCache, img)
+						} else {
+							contexts[i] = contexts[len(contexts)-1]
+							contexts[len(contexts)-1] = 0
+							contexts = contexts[:len(contexts)-1]
+							imageToContextCache[img] = contexts
+						}
+						break
+					}
+				}
+			}
+			ic := imgContext{
+				osImg:     img,
+				osContext: c.gc,
+			}
+			var layer cg.Layer
+			if layer, ok = imageLayerCache[ic]; ok {
+				layer.Release()
+				delete(imageLayerCache, ic)
+			}
+		}
+	}
 	c.gc.Release()
 }

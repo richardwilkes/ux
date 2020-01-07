@@ -21,7 +21,16 @@ import (
 
 type osImage = cg.Image
 
-var imageLayerCache = make(map[cg.Image]cg.Layer)
+type imgContext struct {
+	osImg     osImage
+	osContext OSContext
+}
+
+var (
+	imageLayerCache     = make(map[imgContext]cg.Layer)
+	imageToContextCache = make(map[osImage][]OSContext)
+	contextToImageCache = make(map[OSContext][]osImage)
+)
 
 func osNewImageFromBytes(buffer []byte) (img osImage, width, height int, err error) {
 	data := cf.DataCreate(buffer)
@@ -92,7 +101,11 @@ func (img *imageRef) osImagePixels(pixels []Color) {
 }
 
 func (img *imageRef) osDrawInRect(gc Context, rect geom.Rect) {
-	layer, ok := imageLayerCache[img.osImg]
+	ic := imgContext{
+		osImg:     img.osImg,
+		osContext: gc.OSContext(),
+	}
+	layer, ok := imageLayerCache[ic]
 	if !ok {
 		w := float64(img.width)
 		h := float64(img.height)
@@ -100,7 +113,21 @@ func (img *imageRef) osDrawInRect(gc Context, rect geom.Rect) {
 		layer.Retain()
 		ctx := layer.Context()
 		ctx.DrawImage(0, 0, w, h, img.osImg)
-		imageLayerCache[img.osImg] = layer
+		imageLayerCache[ic] = layer
+		var contexts []OSContext
+		if contexts, ok = imageToContextCache[ic.osImg]; !ok {
+			imageToContextCache[ic.osImg] = []OSContext{ic.osContext}
+		} else {
+			contexts = append(contexts, ic.osContext)
+			imageToContextCache[ic.osImg] = contexts
+		}
+		var images []osImage
+		if images, ok = contextToImageCache[ic.osContext]; !ok {
+			contextToImageCache[ic.osContext] = []osImage{ic.osImg}
+		} else {
+			images = append(images, ic.osImg)
+			contextToImageCache[ic.osContext] = images
+		}
 	}
 	gc.Save()
 	gc.Translate(0, rect.Y+rect.Height)
@@ -111,9 +138,35 @@ func (img *imageRef) osDrawInRect(gc Context, rect geom.Rect) {
 
 func (img *imageRef) osDispose() {
 	if img.osImg != 0 {
-		if layer, ok := imageLayerCache[img.osImg]; ok {
-			layer.Release()
-			delete(imageLayerCache, img.osImg)
+		if contexts, ok := imageToContextCache[img.osImg]; ok {
+			delete(imageToContextCache, img.osImg)
+			for _, ctx := range contexts {
+				var images []osImage
+				if images, ok = contextToImageCache[ctx]; ok {
+					for i := range images {
+						if img.osImg == images[i] {
+							if len(images) == 1 {
+								delete(contextToImageCache, ctx)
+							} else {
+								images[i] = images[len(images)-1]
+								images[len(images)-1] = 0
+								images = images[:len(images)-1]
+								contextToImageCache[ctx] = images
+							}
+							break
+						}
+					}
+				}
+				ic := imgContext{
+					osImg:     img.osImg,
+					osContext: ctx,
+				}
+				var layer cg.Layer
+				if layer, ok = imageLayerCache[ic]; ok {
+					layer.Release()
+					delete(imageLayerCache, ic)
+				}
+			}
 		}
 		img.osImg.Release()
 		img.osImg = 0
