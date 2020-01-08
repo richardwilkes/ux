@@ -13,9 +13,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
-	"io/ioutil"
 	"math"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -76,22 +74,9 @@ func NewImageFromData(data *ImageData) (*Image, error) {
 // NewImageFromURL creates a new image from data retrieved from the URL. The
 // http.DefaultClient will be used if the data URL is remote.
 func NewImageFromURL(urlStr string, scale float64) (*Image, error) {
-	u, err := url.Parse(urlStr)
+	data, err := xio.RetrieveDataFromURL(urlStr)
 	if err != nil {
-		return nil, errs.NewWithCause(urlStr, err)
-	}
-	var data []byte
-	switch u.Scheme {
-	case fileScheme:
-		if data, err = ioutil.ReadFile(u.Path); err != nil {
-			return nil, errs.NewWithCause(urlStr, err)
-		}
-	case httpScheme, httpsScheme:
-		if data, err = retrieveDataFromURL(urlStr); err != nil {
-			return nil, errs.NewWithCause(urlStr, err)
-		}
-	default:
-		return nil, errs.Newf("invalid url: %s", urlStr)
+		return nil, err
 	}
 	return NewImageFromBytes(data, scale)
 }
@@ -281,20 +266,4 @@ func HasImageSuffix(p string) bool {
 	p = strings.ToLower(p)
 	return strings.HasSuffix(p, PNGExt) || strings.HasSuffix(p, JPGExt) ||
 		strings.HasSuffix(p, JPEGExt) || strings.HasSuffix(p, GIFExt)
-}
-
-func retrieveDataFromURL(urlStr string) ([]byte, error) {
-	rsp, err := http.Get(urlStr) //nolint:gosec
-	if err != nil {
-		return nil, errs.Wrap(err)
-	}
-	defer xio.CloseIgnoringErrors(rsp.Body)
-	if rsp.StatusCode < 200 || rsp.StatusCode > 299 {
-		return nil, errs.Newf("received status %d (%s)", rsp.StatusCode, rsp.Status)
-	}
-	data, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return nil, errs.Wrap(err)
-	}
-	return data, nil
 }
