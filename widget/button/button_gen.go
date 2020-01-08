@@ -1,5 +1,3 @@
-// Code created from "widget.go.tmpl" - don't edit by hand
-//
 // Copyright ©2019-2020 by Richard A. Wilkes. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -42,6 +40,7 @@ type managed struct {
 	vAlign                align.Alignment
 	side                  side.Side
 	sticky                bool //nolint:structcheck
+	hideBase              bool //nolint:structcheck
 }
 
 func (m *managed) initialize() {
@@ -421,6 +420,20 @@ func (b *Button) SetSticky(value bool) *Button {
 	if b.sticky != value {
 		b.sticky = value
 		b.MarkForRedraw()
+	}
+	return b
+}
+
+// HideBase returns whether the button should hide its base.
+func (b *Button) HideBase() bool {
+	return b.hideBase
+}
+
+// SetHideBase sets whether the button should hide its base.
+func (b *Button) SetHideBase(value bool) *Button {
+	if b.hideBase != value {
+		b.hideBase = value
+		b.MarkForLayoutAndRedraw()
 	}
 	return b
 }

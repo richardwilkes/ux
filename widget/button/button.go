@@ -55,21 +55,27 @@ func (b *Button) DefaultSizes(hint geom.Size) (min, pref, max geom.Size) {
 	if theBorder := b.Border(); theBorder != nil {
 		pref.AddInsets(theBorder.Insets())
 	}
-	pref.Width += b.horizontalMargin()*2 + 2
-	pref.Height += b.verticalMargin()*2 + 2
+	pref.Width += b.HorizontalMargin() * 2
+	pref.Height += b.VerticalMargin() * 2
+	if !b.HideBase() {
+		pref.Width += 2
+		pref.Height += 2
+	}
 	pref.GrowToInteger()
 	pref.ConstrainForHint(hint)
 	return pref, pref, layout.MaxSize(pref)
 }
 
-func (b *Button) horizontalMargin() float64 {
+// HorizontalMargin returns the horizontal margin that will be used.
+func (b *Button) HorizontalMargin() float64 {
 	if b.text == "" && b.image != nil {
 		return b.imageOnlyHMargin
 	}
 	return b.hMargin
 }
 
-func (b *Button) verticalMargin() float64 {
+// VerticalMargin returns the vertical margin that will be used.
+func (b *Button) VerticalMargin() float64 {
 	if b.text == "" && b.image != nil {
 		return b.imageOnlyVMargin
 	}
@@ -82,12 +88,14 @@ func (b *Button) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bool
 		gc.SetOpacity(0.33)
 	}
 	rect := b.ContentRect(false)
-	widget.DrawRoundedRectBase(gc, rect, b.cornerRadius, b.currentBackgroundInk(), b.edgeInk)
-	rect.InsetUniform(1.5)
-	rect.X += b.horizontalMargin()
-	rect.Y += b.verticalMargin()
-	rect.Width -= b.horizontalMargin() * 2
-	rect.Height -= b.verticalMargin() * 2
+	if !b.HideBase() {
+		widget.DrawRoundedRectBase(gc, rect, b.cornerRadius, b.currentBackgroundInk(), b.edgeInk)
+		rect.InsetUniform(1.5)
+	}
+	rect.X += b.HorizontalMargin()
+	rect.Y += b.VerticalMargin()
+	rect.Width -= b.HorizontalMargin() * 2
+	rect.Height -= b.VerticalMargin() * 2
 	widget.DrawLabel(gc, rect, b.hAlign, b.vAlign, b.text, b.font, b.currentTextInk(), b.image, b.side, b.gap, b.Enabled())
 }
 

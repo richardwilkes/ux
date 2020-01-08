@@ -230,6 +230,13 @@ var widgetList = []*widgetVars{
 				Comment: "whether the button will visually retain its selected state",
 				Redraw:  true,
 			},
+			{
+				Name:    "hideBase",
+				Type:    typeBool,
+				Comment: "whether the button should hide its base",
+				Redraw:  true,
+				Layout:  true,
+			},
 		},
 	},
 	{
