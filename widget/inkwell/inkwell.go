@@ -37,6 +37,7 @@ type InkWell struct {
 	ux.Panel
 	managed
 	ink                   draw.Ink
+	ImageFromURLCallback  func(urlStr string, scale float64) (*draw.Image, error)
 	InkChangedCallback    func()
 	ClickCallback         func()
 	ValidateImageCallback func(*draw.Image) *draw.Image
@@ -55,6 +56,7 @@ func New() *InkWell {
 	well.InitTypeAndID(well)
 	well.SetFocusable(true)
 	well.SetSizer(well.DefaultSizes)
+	well.ImageFromURLCallback = well.DefaultImageFromURL
 	well.ClickCallback = well.DefaultClick
 	well.DrawCallback = well.DefaultDraw
 	well.GainedFocusCallback = well.MarkForRedraw
@@ -269,6 +271,11 @@ func (well *InkWell) DefaultIsDropAcceptable(dragInfo *ux.DragInfo) bool {
 	return dragInfo.ValidItemsForDrop > 0
 }
 
+// DefaultImageFromURL provides the default ImageFromURL behavior.
+func (well *InkWell) DefaultImageFromURL(urlStr string, scale float64) (*draw.Image, error) {
+	return draw.NewImageFromURL(urlStr, well.imageScale)
+}
+
 // DefaultDrop provides the default drop behavior.
 func (well *InkWell) DefaultDrop(dragInfo *ux.DragInfo) bool {
 	if ux.DragOperationCopy&dragInfo.SourceOperationMask != ux.DragOperationCopy {
@@ -280,7 +287,7 @@ func (well *InkWell) DefaultDrop(dragInfo *ux.DragInfo) bool {
 	}
 	for _, one := range dragInfo.DataForType(dt) {
 		if urlStr := draw.DistillImageURL(clipboard.BytesToURL(one)); urlStr != "" {
-			img, err := draw.NewImageFromURL(urlStr, well.imageScale)
+			img, err := well.ImageFromURLCallback(urlStr, well.imageScale)
 			if err != nil {
 				jot.Warn(err)
 				continue
@@ -289,8 +296,7 @@ func (well *InkWell) DefaultDrop(dragInfo *ux.DragInfo) bool {
 				img = well.ValidateImageCallback(img)
 			}
 			if img != nil {
-				p := draw.NewPattern(img)
-				well.SetInk(p)
+				well.SetInk(draw.NewPattern(img))
 				return true
 			}
 		}

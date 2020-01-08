@@ -94,7 +94,7 @@ func showDialog(well *InkWell) {
 				if urlStr := draw.DistillImageURL(openDialog.URLs()[0]); urlStr == "" {
 					dialog.ErrorDialogWithMessage(unable, "Invalid URL")
 				} else {
-					if img, err := draw.NewImageFromURL(urlStr, d.well.imageScale); err != nil {
+					if img, err := d.well.ImageFromURLCallback(urlStr, d.well.imageScale); err != nil {
 						dialog.ErrorDialogWithError(unable, err)
 					} else {
 						if d.well.ValidateImageCallback != nil {
