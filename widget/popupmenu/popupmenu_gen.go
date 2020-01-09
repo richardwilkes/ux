@@ -1,5 +1,3 @@
-// Code created from "widget.go.tmpl" - don't edit by hand
-//
 // Copyright ©2019-2020 by Richard A. Wilkes. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -8,6 +6,8 @@
 //
 // This Source Code Form is "Incompatible With Secondary Licenses", as
 // defined by the Mozilla Public License, version 2.0.
+
+// Code created from "widget.go.tmpl" - don't edit by hand
 
 package popupmenu
 

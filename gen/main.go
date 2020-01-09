@@ -13,7 +13,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"go/format"
 	"io/ioutil"
 	"path/filepath"
@@ -1024,7 +1023,6 @@ func main() {
 func processTemplate(name, dstPath string, arg interface{}) {
 	var buffer bytes.Buffer
 	baseName := name + ".go.tmpl"
-	fmt.Fprintf(&buffer, "// Code created from \"%s\" - don't edit by hand\n//\n", baseName)
 	tmpl, err := template.New(baseName).Funcs(template.FuncMap{
 		"firstToLower": firstToLower,
 		"firstToUpper": firstToUpper,

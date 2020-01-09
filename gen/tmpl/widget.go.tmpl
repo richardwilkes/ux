@@ -7,16 +7,11 @@
 // This Source Code Form is "Incompatible With Secondary Licenses", as
 // defined by the Mozilla Public License, version 2.0.
 
+// Code created from "widget.go.tmpl" - don't edit by hand
+
 package {{package .}}
 {{- $name := .Name}}
 {{- $inst := .Instance}}
-
-import (
-	{{- range imports .}}
-	{{if .}}"{{.}}"{{end}}
-	{{- end}}
-)
-
 type managed struct {
 	{{- range .Vars}}
 	{{.Name}} {{.Type}}{{if not .Default}} //nolint:structcheck{{end}}
