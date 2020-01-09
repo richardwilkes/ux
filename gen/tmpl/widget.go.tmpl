@@ -12,6 +12,13 @@
 package {{package .}}
 {{- $name := .Name}}
 {{- $inst := .Instance}}
+
+import (
+	{{- range imports .}}
+	{{if .}}"{{.}}"{{end}}
+	{{- end}}
+)
+
 type managed struct {
 	{{- range .Vars}}
 	{{.Name}} {{.Type}}{{if not .Default}} //nolint:structcheck{{end}}
