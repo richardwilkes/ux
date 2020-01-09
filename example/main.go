@@ -384,13 +384,24 @@ func createAboutWindow(item *menu.Item) {
 		content.SetBorder(border.NewEmpty(geom.NewUniformInsets(10)))
 		flex.New().Apply(content)
 		title := label.New().SetText(cmdline.AppName).SetFont(draw.EmphasizedSystemFont)
-		flexData := flex.NewData().HAlign(align.Fill).HGrab(true)
+		flexData := flex.NewData().HAlign(align.Middle).HGrab(true)
 		flexData.Apply(title)
 		content.AddChild(title.AsPanel())
-		desc := label.New().SetText("Simple app to demonstrate the\ncapabilities of the ui framework.")
+		desc := label.New().SetText("Simple app to demonstrate the")
+		flexData.Apply(desc)
+		content.AddChild(desc.AsPanel())
+		desc = label.New().SetText("capabilities of the ui framework.")
 		flexData.Apply(desc)
 		content.AddChild(desc.AsPanel())
 		aboutWindow.Pack()
+		wndFrame := aboutWindow.FrameRect()
+		frame := display.Primary().Usable
+		frame.Y += (frame.Height - wndFrame.Height) / 3
+		frame.Height = wndFrame.Height
+		frame.X += (frame.Width - wndFrame.Width) / 2
+		frame.Width = wndFrame.Width
+		frame.Align()
+		aboutWindow.SetFrameRect(frame)
 	}
 	aboutWindow.ToFront()
 }
