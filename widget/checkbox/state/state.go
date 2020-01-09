@@ -11,10 +11,10 @@ package state
 
 // Possible values for State.
 const (
-	Unchecked State = iota
+	Off State = iota
+	On
 	Mixed
-	Checked
 )
 
-// State represents the current state of a checkbox.
+// State represents the current state of something like a check box or mark.
 type State uint8

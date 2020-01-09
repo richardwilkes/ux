@@ -1,5 +1,3 @@
-// Code created from "widget.go.tmpl" - don't edit by hand
-//
 // Copyright ©2019-2020 by Richard A. Wilkes. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
@@ -54,7 +52,7 @@ func (m *managed) initialize() {
 	m.hAlign = align.Start
 	m.vAlign = align.Middle
 	m.side = side.Left
-	m.state = state.Unchecked
+	m.state = state.Off
 }
 
 // Image returns the image. May be nil.

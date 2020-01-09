@@ -118,7 +118,7 @@ func (c *CheckBox) DefaultDraw(gc draw.Context, dirty geom.Rect, inLiveResize bo
 		gc.MoveTo(rect.X+rect.Width*0.25, rect.Y+rect.Height*0.5)
 		gc.LineTo(rect.X+rect.Width*0.7, rect.Y+rect.Height*0.5)
 		gc.Stroke(c.currentMarkInk())
-	case state.Checked:
+	case state.On:
 		gc.SetStrokeWidth(2)
 		gc.MoveTo(rect.X+rect.Width*0.25, rect.Y+rect.Height*0.55)
 		gc.LineTo(rect.X+rect.Width*0.45, rect.Y+rect.Height*0.7)
@@ -161,10 +161,10 @@ func (c *CheckBox) Click() {
 }
 
 func (c *CheckBox) updateState() {
-	if c.State() == state.Checked {
-		c.SetState(state.Unchecked)
+	if c.State() == state.On {
+		c.SetState(state.Off)
 	} else {
-		c.SetState(state.Checked)
+		c.SetState(state.On)
 	}
 }
 

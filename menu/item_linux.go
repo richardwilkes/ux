@@ -9,6 +9,8 @@
 
 package menu
 
+import "github.com/richardwilkes/ux/widget/checkbox/state"
+
 type osItem = int
 
 func (item *Item) osIsSame(other *Item) bool {
@@ -45,11 +47,11 @@ func (item *Item) osSubMenu() *Menu {
 	return nil
 }
 
-func (item *Item) osCheckState() CheckState {
+func (item *Item) osCheckState() state.State {
 	// RAW: Implement
-	return Off
+	return state.Off
 }
 
-func (item *Item) osSetCheckState(state CheckState) {
+func (item *Item) osSetCheckState(s state.State) {
 	// RAW: Implement
 }

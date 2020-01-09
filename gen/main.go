@@ -362,7 +362,7 @@ var widgetList = []*widgetVars{
 			{
 				Name:    "state",
 				Type:    typeState,
-				Default: "state.Unchecked",
+				Default: "state.Off",
 				Comment: "the checked state",
 				Redraw:  true,
 			},

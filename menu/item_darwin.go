@@ -9,7 +9,10 @@
 
 package menu
 
-import "github.com/richardwilkes/macos/ns"
+import (
+	"github.com/richardwilkes/macos/ns"
+	"github.com/richardwilkes/ux/widget/checkbox/state"
+)
 
 type osItem = *ns.MenuItem
 
@@ -51,22 +54,22 @@ func (item *Item) osSubMenu() *Menu {
 	return &Menu{native: menu}
 }
 
-func (item *Item) osCheckState() CheckState {
+func (item *Item) osCheckState() state.State {
 	switch item.native.State() {
 	case ns.MenuItemStateOn:
-		return On
+		return state.On
 	case ns.MenuItemStateMixed:
-		return Mixed
+		return state.Mixed
 	default:
-		return Off
+		return state.Off
 	}
 }
 
-func (item *Item) osSetCheckState(state CheckState) {
-	switch state {
-	case On:
+func (item *Item) osSetCheckState(s state.State) {
+	switch s {
+	case state.On:
 		item.native.SetState(ns.MenuItemStateOn)
-	case Mixed:
+	case state.Mixed:
 		item.native.SetState(ns.MenuItemStateMixed)
 	default:
 		item.native.SetState(ns.MenuItemStateOff)

@@ -22,6 +22,7 @@ import (
 	"github.com/richardwilkes/ux/layout/align"
 	"github.com/richardwilkes/ux/menu"
 	"github.com/richardwilkes/ux/widget"
+	"github.com/richardwilkes/ux/widget/checkbox/state"
 )
 
 // PopupMenu represents a clickable button that displays a menu of choices.
@@ -147,9 +148,11 @@ func (p *PopupMenu) Click() {
 		} else {
 			hasItem = true
 			index := i
-			m.InsertItem(-1, ids.PopupMenuTemporaryBaseID+index, fmt.Sprintf("%v", item), nil, 0, nil, func(*menu.Item) {
+			var menuItem *menu.Item
+			menuItem = m.InsertItem(-1, ids.PopupMenuTemporaryBaseID+index, fmt.Sprintf("%v", item), nil, 0, nil, func(*menu.Item) {
 				if index != p.SelectedIndex() {
 					p.SelectIndex(index)
+					menuItem.SetCheckState(state.On)
 				}
 			})
 		}

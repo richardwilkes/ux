@@ -9,15 +9,7 @@
 
 package menu
 
-// CheckState holds a menu item's check state.
-type CheckState uint8
-
-// Possible menu item check states.
-const (
-	Off CheckState = iota
-	On
-	Mixed
-)
+import "github.com/richardwilkes/ux/widget/checkbox/state"
 
 // ItemValidator is a function called to validate a menu item.
 type ItemValidator func(item *Item) bool
@@ -82,11 +74,11 @@ func (item *Item) SubMenu() *Menu {
 }
 
 // CheckState returns the item's current check state.
-func (item *Item) CheckState() CheckState {
+func (item *Item) CheckState() state.State {
 	return item.osCheckState()
 }
 
 // SetCheckState sets the item's check state.
-func (item *Item) SetCheckState(state CheckState) {
-	item.osSetCheckState(state)
+func (item *Item) SetCheckState(s state.State) {
+	item.osSetCheckState(s)
 }

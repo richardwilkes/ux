@@ -270,7 +270,7 @@ func createCheckBoxPanel() *ux.Panel {
 	createCheckBox("Press Me", panel)
 	createCheckBox("Initially Mixed", panel).SetState(state.Mixed)
 	createCheckBox("Disabled", panel).SetEnabled(false)
-	createCheckBox("Disabled w/Check", panel).SetState(state.Checked).SetEnabled(false)
+	createCheckBox("Disabled w/Check", panel).SetState(state.On).SetEnabled(false)
 	return panel
 }
 
