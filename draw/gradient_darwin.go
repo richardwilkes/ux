@@ -41,7 +41,7 @@ func (g *Gradient) osStroke(gc Context) {
 
 func (g *Gradient) draw(gc Context) {
 	rect := gc.GetClipRect()
-	colorSpace := cg.ColorSpaceCreateDeviceRGB()
+	colorspace := cg.ColorSpaceCreateSRGB()
 	count := len(g.Stops)
 	components := make([]float64, count*4)
 	locations := make([]float64, count)
@@ -53,9 +53,9 @@ func (g *Gradient) draw(gc Context) {
 		components[j+3] = one.Color.Color.AlphaIntensity()
 		locations[i] = one.Location
 	}
-	gradient := cg.GradientCreateWithColorComponents(colorSpace, components, locations)
+	gradient := cg.GradientCreateWithColorComponents(colorspace, components, locations)
 	gradient.Retain()
-	colorSpace.Release()
+	colorspace.Release()
 	sx := rect.X + rect.Width*g.Start.X
 	sy := rect.Y + rect.Height*g.Start.Y
 	ex := rect.X + rect.Width*g.End.X

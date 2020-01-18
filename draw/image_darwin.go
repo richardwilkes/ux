@@ -15,6 +15,7 @@ import (
 	"github.com/richardwilkes/macos/cf"
 	"github.com/richardwilkes/macos/cg"
 	"github.com/richardwilkes/toolbox/errs"
+	"github.com/richardwilkes/toolbox/log/jot"
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux/draw/quality"
 )
@@ -50,7 +51,8 @@ func osNewImageFromData(data *ImageData) (osImage, error) {
 	for i := range data.Pixels {
 		pd[i] = data.Pixels[i].Premultiply()
 	}
-	colorspace := cg.ColorSpaceCreateDeviceRGB()
+	colorspace := cg.ColorSpaceCreateSRGB()
+	jot.Debug(colorspace)
 	defer colorspace.Release()
 	pixels := cf.DataCreate(((*[1 << 30]byte)(unsafe.Pointer(&pd[0])))[:len(pd)*4]) //nolint:gosec
 	defer pixels.Release()
@@ -70,7 +72,7 @@ func (img *imageRef) osNewSubImage(x, y, width, height int) (osImage, error) {
 }
 
 func (img *imageRef) osNewScaledImage(width, height int, q quality.Quality) (osImage, error) {
-	colorspace := cg.ColorSpaceCreateDeviceRGB()
+	colorspace := cg.ColorSpaceCreateSRGB()
 	defer colorspace.Release()
 	if ctx := cg.BitmapContextCreate(nil, width, height, 8, 0, colorspace, cg.BitmapAlphaPremultipliedFirst); ctx != 0 {
 		defer ctx.Release()
@@ -88,7 +90,7 @@ func (img *imageRef) osIsValid() bool {
 }
 
 func (img *imageRef) osImagePixels(pixels []Color) {
-	colorspace := cg.ColorSpaceCreateDeviceRGB()
+	colorspace := cg.ColorSpaceCreateSRGB()
 	if ctx := cg.BitmapContextCreate(unsafe.Pointer(&pixels[0]), img.width, img.height, 8, img.width*4, colorspace, cg.BitmapAlphaPremultipliedFirst); ctx != 0 { //nolint:gosec
 		ctx.SetInterpolationQuality(cg.InterpolationQualityNone)
 		ctx.DrawImage(0, 0, float64(img.width), float64(img.height), img.osImg)
