@@ -15,7 +15,6 @@ import (
 	"github.com/richardwilkes/macos/cf"
 	"github.com/richardwilkes/macos/cg"
 	"github.com/richardwilkes/toolbox/errs"
-	"github.com/richardwilkes/toolbox/log/jot"
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux/draw/quality"
 )
@@ -52,7 +51,6 @@ func osNewImageFromData(data *ImageData) (osImage, error) {
 		pd[i] = data.Pixels[i].Premultiply()
 	}
 	colorspace := cg.ColorSpaceCreateSRGB()
-	jot.Debug(colorspace)
 	defer colorspace.Release()
 	pixels := cf.DataCreate(((*[1 << 30]byte)(unsafe.Pointer(&pd[0])))[:len(pd)*4]) //nolint:gosec
 	defer pixels.Release()
