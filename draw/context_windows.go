@@ -118,43 +118,13 @@ func (c *context) Fill(ink Ink) {
 	ink.osFill(c)
 }
 
-//func (c *context) SetFillColor(clr color.Color) {
-//	c.disposeBrush()
-//	c.brush = win32.CreateSolidBrush(fromColorToWin32ColorRef(clr))
-//}
-
-//func (c *context) Fill() {
-//	win32.EndPath(c.hdc)
-//	win32.SetPolyFillMode(c.hdc, win32.WINDING)
-//	win32.SelectObject(c.hdc, win32.HGDIOBJ(c.brush))
-//	win32.FillPath(c.hdc)
-//}
-
 func (c *context) FillEvenOdd(ink Ink) {
 	ink.osFillEvenOdd(c)
 }
 
-//func (c *context) FillEvenOdd() {
-//	win32.EndPath(c.hdc)
-//	win32.SetPolyFillMode(c.hdc, win32.ALTERNATE)
-//	win32.SelectObject(c.hdc, win32.HGDIOBJ(c.brush))
-//	win32.FillPath(c.hdc)
-//}
-
 func (c *context) Stroke(ink Ink) {
 	ink.osStroke(c)
 }
-
-//func (c *context) SetStrokeColor(clr color.Color) {
-//	c.disposePen()
-//	c.pen = win32.CreatePen(win32.PS_SOLID, 1, fromColorToWin32ColorRef(clr))
-//}
-
-//func (c *context) Stroke() {
-//	win32.EndPath(c.hdc)
-//	win32.SelectObject(c.hdc, win32.HGDIOBJ(c.pen))
-//	win32.StrokePath(c.hdc)
-//}
 
 func (c *context) GetClipRect() geom.Rect {
 	return geom.Rect{} // RAW: Implement
@@ -223,7 +193,12 @@ func (c *context) CubicCurveTo(cp1x, cp1y, cp2x, cp2y, x, y float64) {
 }
 
 func (c *context) Rect(rect geom.Rect) {
-	win32.Rectangle(c.hdc, int(rect.X), int(rect.Y), int(rect.X+rect.Width), int(rect.Y+rect.Height))
+	c.BeginPath()
+	c.MoveTo(rect.X, rect.Y)
+	c.LineTo(rect.Right(), rect.Y)
+	c.LineTo(rect.Right(), rect.Bottom())
+	c.LineTo(rect.X, rect.Bottom())
+	c.ClosePath()
 }
 
 func (c *context) RoundedRect(rect geom.Rect, cornerRadius float64) {
@@ -271,7 +246,6 @@ func (c *context) Dispose() {
 }
 
 func fromColorToWin32ColorRef(c Color) win32.COLORREF {
-	// Swap red and blue for Windows ... and nuke alpha channel
-	// RAW: What to do about alpha?
-	return win32.COLORREF((c & 0x0000FF00) | ((c & 0x00FF0000) >> 16) | ((c & 0x000000FF) << 16))
+	// RAW: Nuke alpha channel... which isn't acceptable
+	return win32.COLORREF(c >> 8)
 }
