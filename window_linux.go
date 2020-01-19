@@ -98,7 +98,7 @@ func (w *Window) osDispose() {
 	xevent.Detach(globals.X11, w.wnd.Id)
 	mousebind.Detach(globals.X11, w.wnd.Id)
 	w.wnd.Destroy()
-	if len(nativeWindowMap) == 0 && QuitAfterLastWindowClosedCallback() {
+	if len(nativeWindowMap) == 0 && (QuitAfterLastWindowClosedCallback == nil || QuitAfterLastWindowClosedCallback()) {
 		AttemptQuit()
 	}
 }

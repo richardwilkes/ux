@@ -225,7 +225,7 @@ func wndProc(wnd win32.HWND, msg uint32, wParam win32.WPARAM, lParam win32.LPARA
 		} else {
 			win32.DestroyWindow(wnd)
 		}
-		if len(nativeWindowMap) == 0 && QuitAfterLastWindowClosedCallback() {
+		if len(nativeWindowMap) == 0 && (QuitAfterLastWindowClosedCallback == nil || QuitAfterLastWindowClosedCallback()) {
 			AttemptQuit()
 		}
 		return 0

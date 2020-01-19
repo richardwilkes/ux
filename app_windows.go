@@ -50,7 +50,7 @@ func osStart() {
 
 func osAttemptQuit() {
 	response := Now
-	if CheckQuitCallback == nil {
+	if CheckQuitCallback != nil {
 		response = CheckQuitCallback()
 	}
 	switch response {
