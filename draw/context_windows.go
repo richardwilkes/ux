@@ -53,7 +53,7 @@ func osNewContextForOSContext(gc OSContext) Context {
 	}
 	c.renderTarget.BeginDraw()
 	c.osiSetMatrix(xmath.NewIdentityMatrix2D())
-	c.renderTarget.PushAxisAlignedClip(&d2d.Rect{
+	c.renderTarget.PushAxisAlignedClip(d2d.Rect{
 		Left:   -math.MaxFloat32,
 		Top:    -math.MaxFloat32,
 		Right:  math.MaxFloat32,

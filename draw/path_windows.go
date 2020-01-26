@@ -46,11 +46,10 @@ func (p *winPath) setup() error {
 	if p.pathGeometry = p.gc.renderTarget.Factory().CreatePathGeometry(); p.pathGeometry == nil {
 		return errs.New("unable to create path geometry")
 	}
-	var err error
-	if p.sink, err = p.pathGeometry.Open(); err != nil {
+	if p.sink = p.pathGeometry.Open(); p.sink == nil {
 		p.pathGeometry.Release()
 		p.pathGeometry = nil
-		return errs.Wrap(err)
+		return errs.New("unable to create sink")
 	}
 	p.sink.SetFillMode(p.windingFillMode)
 	return nil
@@ -84,7 +83,7 @@ func (p *winPath) LineTo(x, y float64) {
 }
 
 func (p *winPath) QuadCurveTo(cpx, cpy, x, y float64) {
-	p.sink.AddQuadraticBezier(&d2d.QuadraticBezierSegment{
+	p.sink.AddQuadraticBezier(d2d.QuadraticBezierSegment{
 		Point1: d2d.Point{
 			X: float32(cpx),
 			Y: float32(cpy),
@@ -98,7 +97,7 @@ func (p *winPath) QuadCurveTo(cpx, cpy, x, y float64) {
 }
 
 func (p *winPath) CubicCurveTo(cp1x, cp1y, cp2x, cp2y, x, y float64) {
-	p.sink.AddBezier(&d2d.BezierSegment{
+	p.sink.AddBezier(d2d.BezierSegment{
 		Point1: d2d.Point{
 			X: float32(cp1x),
 			Y: float32(cp1y),
@@ -116,7 +115,7 @@ func (p *winPath) CubicCurveTo(cp1x, cp1y, cp2x, cp2y, x, y float64) {
 }
 
 func (p *winPath) Rect(rect geom.Rect) {
-	rg := p.gc.renderTarget.Factory().CreateRectangleGeometry(&d2d.Rect{
+	rg := p.gc.renderTarget.Factory().CreateRectangleGeometry(d2d.Rect{
 		Left:   float32(rect.X),
 		Top:    float32(rect.Y),
 		Right:  float32(rect.Right()),
@@ -130,7 +129,7 @@ func (p *winPath) Rect(rect geom.Rect) {
 }
 
 func (p *winPath) RoundedRect(rect geom.Rect, cornerRadius float64) {
-	rg := p.gc.renderTarget.Factory().CreateRoundedRectangleGeometry(&d2d.RoundedRect{
+	rg := p.gc.renderTarget.Factory().CreateRoundedRectangleGeometry(d2d.RoundedRect{
 		Rect: d2d.Rect{
 			Left:   float32(rect.X),
 			Top:    float32(rect.Y),
@@ -148,7 +147,7 @@ func (p *winPath) RoundedRect(rect geom.Rect, cornerRadius float64) {
 }
 
 func (p *winPath) Ellipse(rect geom.Rect) {
-	eg := p.gc.renderTarget.Factory().CreateEllipseGeometry(&d2d.Ellipse{
+	eg := p.gc.renderTarget.Factory().CreateEllipseGeometry(d2d.Ellipse{
 		Point: d2d.Point{
 			X: float32(rect.CenterX()),
 			Y: float32(rect.CenterY()),
@@ -203,14 +202,6 @@ func (p *winPath) addOtherGeometry(geom *d2d.Geometry) {
 	p.result = append(p.result, geom)
 }
 
-func (p *winPath) closeSink() {
-	if p.sink != nil {
-		p.sink.Close()
-		p.sink.Release()
-		p.sink = nil
-	}
-}
-
 func (p *winPath) geometry() *d2d.Geometry {
 	if p.figureOpen {
 		p.sink.EndFigure(false)
@@ -230,6 +221,14 @@ func (p *winPath) geometry() *d2d.Geometry {
 	}
 	// release the result here
 	return &group.Geometry
+}
+
+func (p *winPath) closeSink() {
+	if p.sink != nil {
+		p.sink.Close()
+		p.sink.Release()
+		p.sink = nil
+	}
 }
 
 func (p *winPath) dispose() {

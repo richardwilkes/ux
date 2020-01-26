@@ -88,6 +88,10 @@ type DynamicColor struct {
 	Color Color
 }
 
+func (c *DynamicColor) osPrepareForFill(gc Context) {
+	c.Color.osPrepareForFill(gc)
+}
+
 func (c *DynamicColor) osFill(gc Context) {
 	c.Color.osFill(gc)
 }

@@ -14,8 +14,8 @@ github.com/richardwilkes/macos v0.0.0-20200117232136-c4e92bb9e563 h1:kQywp/LwB0W
 github.com/richardwilkes/macos v0.0.0-20200117232136-c4e92bb9e563/go.mod h1:uvvDG6msBC/OdzSFW99KVxiVKn+dhCjC8OZPJ/FEyuQ=
 github.com/richardwilkes/toolbox v1.24.0 h1:T2zGn4qnkuoTE8S8cbbWUzbolPsHT/Fgoh09HsRIGj8=
 github.com/richardwilkes/toolbox v1.24.0/go.mod h1:yOuzWx4rgI1Dc6YSHGom//gPDp4PCXj/CJx3ZNlMTzI=
-github.com/richardwilkes/win32 v0.0.0-20200126044659-e1e4c9941eb0 h1:m5gmEAcpe1VYdmqEq3VkR3QQyKkrzIXFZhne3TuBjbQ=
-github.com/richardwilkes/win32 v0.0.0-20200126044659-e1e4c9941eb0/go.mod h1:TnctiBPerZJhQBYs5B1OG4aBG0Lx5b1CYTTNx8HCqgU=
+github.com/richardwilkes/win32 v0.0.0-20200126171412-242fd41640ee h1:bWdfvl4yAvkGyITM3+xo39R6pNuXSZiK2lG4cvDb8b8=
+github.com/richardwilkes/win32 v0.0.0-20200126171412-242fd41640ee/go.mod h1:TnctiBPerZJhQBYs5B1OG4aBG0Lx5b1CYTTNx8HCqgU=
 github.com/stretchr/objx v0.1.0 h1:4G4v2dO3VZwixGIRoQ5Lfboy6nUhCyYzaqnIAPPhYs4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=

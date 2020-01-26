@@ -15,6 +15,10 @@ import (
 	"github.com/richardwilkes/win32/d2d"
 )
 
+func (c Color) osPrepareForFill(gc Context) {
+	// Not supported
+}
+
 func (c Color) osFill(gc Context) {
 	c.osiFill(gc, true)
 }
@@ -44,7 +48,7 @@ func (c Color) osiFill(gc Context, windingFillMode bool) {
 }
 
 func (c Color) osiNewBrush(gc *context) *d2d.SolidColorBrush {
-	return gc.renderTarget.CreateSolidColorBrush(&d2d.Color{
+	return gc.renderTarget.CreateSolidColorBrush(d2d.Color{
 		R: float32(c.RedIntensity()),
 		G: float32(c.GreenIntensity()),
 		B: float32(c.BlueIntensity()),

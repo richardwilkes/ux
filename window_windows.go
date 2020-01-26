@@ -227,7 +227,7 @@ func wndProc(wnd win32.HWND, msg uint32, wParam win32.WPARAM, lParam win32.LPARA
 			bounds.X = 0
 			bounds.Y = 0
 			if wi.renderTarget == nil {
-				if wi.renderTarget = d2dFactory.CreateHwndRenderTarget(&d2d.RenderTargetProperties{}, &d2d.HWNDRenderTargetProperties{
+				if wi.renderTarget = d2dFactory.CreateHWNDRenderTarget(&d2d.RenderTargetProperties{}, &d2d.HWNDRenderTargetProperties{
 					HWND: wnd,
 					PixelSize: d2d.SizeU{
 						Width:  uint32(bounds.Width),

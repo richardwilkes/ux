@@ -9,6 +9,10 @@
 
 package draw
 
+func (c Color) osPrepareForFill(gc Context) {
+	// RAW: Implement
+}
+
 func (c Color) osFill(gc Context) {
 	// RAW: Implement
 }

@@ -15,6 +15,10 @@ func osNewPattern(img *Image) osPattern {
 	return 0 // RAW: Implement
 }
 
+func (p *Pattern) osPrepareForFill(gc Context) {
+	// RAW: Implement
+}
+
 func (p *Pattern) osFill(gc Context) {
 	// RAW: Implement
 }
