@@ -13,10 +13,6 @@ import (
 	"github.com/richardwilkes/macos/cg"
 )
 
-func (g *Gradient) osPrepareForFill(gc Context) {
-	// Unsupported
-}
-
 func (g *Gradient) osFill(gc Context) {
 	gc.Save()
 	gc.Clip()

@@ -9,17 +9,17 @@
 
 package draw
 
-func (c Color) osPrepareForFill(gc Context) {
+func (c Color) osiPrepareForFill(gc Context) {
 	gc.OSContext().SetRGBFillColor(c.RedIntensity(), c.GreenIntensity(), c.BlueIntensity(), c.AlphaIntensity())
 }
 
 func (c Color) osFill(gc Context) {
-	c.osPrepareForFill(gc)
+	c.osiPrepareForFill(gc)
 	gc.OSContext().FillPath()
 }
 
 func (c Color) osFillEvenOdd(gc Context) {
-	c.osPrepareForFill(gc)
+	c.osiPrepareForFill(gc)
 	gc.OSContext().EOFillPath()
 }
 

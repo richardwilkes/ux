@@ -37,7 +37,7 @@ func osNewPattern(img *Image) osPattern {
 	return cg.PatternCreate(0, 0, w, h, cg.AffineTransformIdentity, w, h, cg.PatternTilingConstantSpacing, true, newPatternCallbacks(img))
 }
 
-func (p *Pattern) osPrepareForFill(gc Context) {
+func (p *Pattern) osiPrepareForFill(gc Context) {
 	g := gc.OSContext()
 	patternSpace := cg.ColorSpaceCreatePattern(0)
 	g.SetFillColorSpace(patternSpace)
@@ -46,12 +46,12 @@ func (p *Pattern) osPrepareForFill(gc Context) {
 }
 
 func (p *Pattern) osFill(gc Context) {
-	p.osPrepareForFill(gc)
+	p.osiPrepareForFill(gc)
 	gc.OSContext().FillPath()
 }
 
 func (p *Pattern) osFillEvenOdd(gc Context) {
-	p.osPrepareForFill(gc)
+	p.osiPrepareForFill(gc)
 	gc.OSContext().EOFillPath()
 }
 

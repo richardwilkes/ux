@@ -9,36 +9,66 @@
 
 package draw
 
-import "github.com/richardwilkes/win32"
-
-func (c Color) osPrepareForFill(gc Context) {
-	osc := gc.(*context)
-	osc.disposeBrush()
-	osc.brush = win32.CreateSolidBrush(fromColorToWin32ColorRef(c))
-}
+import (
+	"github.com/richardwilkes/toolbox/errs"
+	"github.com/richardwilkes/toolbox/log/jot"
+	"github.com/richardwilkes/win32/d2d"
+)
 
 func (c Color) osFill(gc Context) {
-	c.osiFill(gc, win32.WINDING)
+	c.osiFill(gc, true)
 }
 
 func (c Color) osFillEvenOdd(gc Context) {
-	c.osiFill(gc, win32.ALTERNATE)
+	c.osiFill(gc, false)
 }
 
-func (c Color) osiFill(gc Context, mode int) {
-	c.osPrepareForFill(gc)
+func (c Color) osiFill(gc Context, windingFillMode bool) {
 	osc := gc.(*context)
-	win32.EndPath(osc.hdc)
-	win32.SetPolyFillMode(osc.hdc, mode)
-	win32.SelectObject(osc.hdc, win32.HGDIOBJ(osc.brush))
-	win32.FillPath(osc.hdc)
+	if len(osc.path.nodes) > 0 {
+		brush := c.osiNewBrush(osc)
+		if brush == nil {
+			jot.Error(errs.New("unable to create brush"))
+			return
+		}
+		defer brush.Release()
+		p, err := newWinPath(osc, windingFillMode, false)
+		if err != nil {
+			jot.Error(err)
+			return
+		}
+		osc.path.SendPath(p)
+		p.gc.renderTarget.FillGeometry(p.geometry(), &brush.Brush, nil)
+		p.dispose()
+	}
+}
+
+func (c Color) osiNewBrush(gc *context) *d2d.SolidColorBrush {
+	return gc.renderTarget.CreateSolidColorBrush(&d2d.Color{
+		R: float32(c.RedIntensity()),
+		G: float32(c.GreenIntensity()),
+		B: float32(c.BlueIntensity()),
+		A: float32(c.AlphaIntensity()),
+	}, nil)
 }
 
 func (c Color) osStroke(gc Context) {
 	osc := gc.(*context)
-	osc.disposePen()
-	osc.pen = win32.CreatePen(win32.PS_SOLID, 1, fromColorToWin32ColorRef(c))
-	win32.EndPath(osc.hdc)
-	win32.SelectObject(osc.hdc, win32.HGDIOBJ(osc.pen))
-	win32.StrokePath(osc.hdc)
+	if len(osc.path.nodes) > 0 {
+		brush := c.osiNewBrush(osc)
+		if brush == nil {
+			jot.Error(errs.New("unable to create brush"))
+			return
+		}
+		defer brush.Release()
+		p, err := newWinPath(osc, true, true)
+		if err != nil {
+			jot.Error(err)
+			return
+		}
+		osc.path.SendPath(p)
+		current := p.gc.current()
+		p.gc.renderTarget.DrawGeometry(p.geometry(), &brush.Brush, current.strokeWidth, current.strokeStyle)
+		p.dispose()
+	}
 }

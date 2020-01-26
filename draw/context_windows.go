@@ -10,40 +10,81 @@
 package draw
 
 import (
+	"math"
+
+	"github.com/richardwilkes/toolbox/log/jot"
 	"github.com/richardwilkes/toolbox/xmath"
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/toolbox/xmath/geom/poly"
 	"github.com/richardwilkes/ux/draw/linecap"
 	"github.com/richardwilkes/ux/draw/linejoin"
 	"github.com/richardwilkes/ux/draw/quality"
-	"github.com/richardwilkes/win32"
+	"github.com/richardwilkes/win32/d2d"
 )
 
+// RAW: Given the huge graphical issues I've seen in the early implementation
+// using GDI, it's not going to be even remotely acceptable. Will have to
+// look at Direct2D instead... but that will require writing a shim layer, as
+// there is no C API for it, which is required for Go to make the calls.
+
 // OSContext is the platform-specific drawing context on Windows.
-type OSContext = win32.HDC
+type OSContext = *d2d.HWNDRenderTarget
+
+type contextState struct {
+	state       d2d.DrawingStateBlock
+	strokeStyle *d2d.StrokeStyle
+	strokeWidth float32
+}
 
 type context struct {
-	hdc   OSContext
-	brush win32.HBRUSH
-	pen   win32.HPEN
+	renderTarget OSContext
+	stack        []*contextState
+	path         Path
 }
 
 func osNewContextForOSContext(gc OSContext) Context {
-	c := &context{hdc: gc}
-	win32.SetTextAlign(c.hdc, win32.TA_TOP|win32.TA_LEFT)
+	c := &context{
+		renderTarget: gc,
+		stack: []*contextState{
+			{
+				strokeWidth: 1,
+			},
+		},
+	}
+	c.renderTarget.BeginDraw()
+	c.osiSetMatrix(xmath.NewIdentityMatrix2D())
+	c.renderTarget.PushAxisAlignedClip(&d2d.Rect{
+		Left:   -math.MaxFloat32,
+		Top:    -math.MaxFloat32,
+		Right:  math.MaxFloat32,
+		Bottom: math.MaxFloat32,
+	}, false)
 	return c
 }
 
 func (c *context) OSContext() OSContext {
-	return c.hdc
+	return c.renderTarget
+}
+
+func (c *context) current() *contextState {
+	return c.stack[len(c.stack)-1]
 }
 
 func (c *context) Save() {
-	win32.SaveDC(c.hdc)
+	current := c.current()
+	var cs contextState
+	c.renderTarget.SaveDrawingState(&cs.state)
+	cs.strokeWidth = current.strokeWidth
+	c.stack[len(c.stack)-1] = &cs
+	c.stack = append(c.stack, current)
 }
 
 func (c *context) Restore() {
-	win32.RestoreDC(c.hdc, -1)
+	if len(c.stack) > 0 {
+		c.stack[len(c.stack)-1] = nil
+		c.stack = c.stack[:len(c.stack)-1]
+		c.renderTarget.RestoreDrawingState(&c.current().state)
+	}
 }
 
 func (c *context) SetOpacity(opacity float64) {
@@ -55,7 +96,7 @@ func (c *context) SetPatternOffset(x, y float64) {
 }
 
 func (c *context) SetStrokeWidth(width float64) {
-	// RAW: Implement
+	c.current().strokeWidth = float32(width)
 }
 
 func (c *context) SetLineCap(lineCap linecap.LineCap) {
@@ -79,51 +120,41 @@ func (c *context) SetInterpolationQualityHint(q quality.Quality) {
 }
 
 func (c *context) Translate(x, y float64) {
-	matrix := xmath.NewTranslationMatrix2D(x, y)
-	win32.SetWorldTransform(c.hdc, &win32.XFORM{
-		EM11: float32(matrix.XX),
-		EM12: float32(matrix.YX),
-		EM21: float32(matrix.XY),
-		EM22: float32(matrix.YY),
-		EDx:  float32(matrix.X0),
-		EDy:  float32(matrix.Y0),
-	})
+	c.osiSetMatrix(xmath.NewTranslationMatrix2D(x, y))
 }
 
 func (c *context) Scale(x, y float64) {
-	matrix := xmath.NewScaleMatrix2D(x, y)
-	win32.SetWorldTransform(c.hdc, &win32.XFORM{
-		EM11: float32(matrix.XX),
-		EM12: float32(matrix.YX),
-		EM21: float32(matrix.XY),
-		EM22: float32(matrix.YY),
-		EDx:  float32(matrix.X0),
-		EDy:  float32(matrix.Y0),
-	})
+	c.osiSetMatrix(xmath.NewScaleMatrix2D(x, y))
 }
 
 func (c *context) Rotate(angleInRadians float64) {
-	matrix := xmath.NewRotationMatrix2D(angleInRadians)
-	win32.SetWorldTransform(c.hdc, &win32.XFORM{
-		EM11: float32(matrix.XX),
-		EM12: float32(matrix.YX),
-		EM21: float32(matrix.XY),
-		EM22: float32(matrix.YY),
-		EDx:  float32(matrix.X0),
-		EDy:  float32(matrix.Y0),
+	c.osiSetMatrix(xmath.NewRotationMatrix2D(angleInRadians))
+}
+
+func (c *context) osiSetMatrix(matrix *xmath.Matrix2D) {
+	c.renderTarget.SetTransform(&d2d.Matrix3x2{
+		A11: float32(matrix.XX),
+		A12: float32(matrix.YX),
+		A21: float32(matrix.XY),
+		A22: float32(matrix.YY),
+		A31: float32(matrix.X0),
+		A32: float32(matrix.Y0),
 	})
 }
 
 func (c *context) Fill(ink Ink) {
 	ink.osFill(c)
+	c.path.BeginPath()
 }
 
 func (c *context) FillEvenOdd(ink Ink) {
 	ink.osFillEvenOdd(c)
+	c.path.BeginPath()
 }
 
 func (c *context) Stroke(ink Ink) {
 	ink.osStroke(c)
+	c.path.BeginPath()
 }
 
 func (c *context) GetClipRect() geom.Rect {
@@ -131,15 +162,54 @@ func (c *context) GetClipRect() geom.Rect {
 }
 
 func (c *context) Clip() {
-	win32.EndPath(c.hdc)
-	win32.SetPolyFillMode(c.hdc, win32.WINDING)
-	win32.SelectClipPath(c.hdc, win32.RGN_AND)
+	defer c.path.BeginPath()
+	switch len(c.path.nodes) {
+	case 0:
+		return
+	case 1:
+		if rpn, ok := c.path.nodes[0].(*rectPathNode); ok {
+			jot.Info("clip: ", rpn.rect)
+			// c.renderTarget.PushAxisAlignedClip(&d2d.Rect{
+			// 	Left:   float32(rpn.rect.X),
+			// 	Top:    float32(rpn.rect.Y),
+			// 	Right:  float32(rpn.rect.Right()),
+			// 	Bottom: float32(rpn.rect.Bottom()),
+			// }, false)
+			return
+		}
+		fallthrough
+	default:
+		p, err := newWinPath(c, true, false)
+		if err != nil {
+			jot.Error(err)
+			return
+		}
+		c.path.SendPath(p)
+		// p.gc.renderTarget.PushLayer(&d2d.LayerParameters{
+		// 	ContentBounds: d2d.Rect{
+		// 		Left:   -math.MaxFloat32,
+		// 		Top:    -math.MaxFloat32,
+		// 		Right:  math.MaxFloat32,
+		// 		Bottom: math.MaxFloat32,
+		// 	},
+		// 	GeometricMask: p.geometry(),
+		// }, nil)
+		p.dispose()
+	}
 }
 
 func (c *context) ClipEvenOdd() {
-	win32.EndPath(c.hdc)
-	win32.SetPolyFillMode(c.hdc, win32.ALTERNATE)
-	win32.SelectClipPath(c.hdc, win32.RGN_AND)
+	p, err := newWinPath(c, false, false)
+	if err != nil {
+		jot.Error(err)
+		return
+	}
+	c.path.SendPath(p)
+	p.gc.renderTarget.PushLayer(&d2d.LayerParameters{
+		GeometricMask: p.geometry(),
+	}, nil)
+	p.dispose()
+	c.path.BeginPath()
 }
 
 func (c *context) DrawImage(img *Image, where geom.Point) {
@@ -152,100 +222,54 @@ func (c *context) DrawImageInRect(img *Image, rect geom.Rect) {
 
 func (c *context) DrawString(x, y float64, font *Font, ink Ink, str string) {
 	// RAW: Use ink
-	win32.SelectObject(c.hdc, win32.HGDIOBJ(font.ref))
-	win32.TextOut(c.hdc, int(x), int(y), str)
+	// win32.SelectObject(c.hdc, win32.HGDIOBJ(font.ref))
+	// win32.TextOut(c.hdc, int(x), int(y), str)
 }
 
 func (c *context) BeginPath() {
-	win32.BeginPath(c.hdc)
+	c.path.BeginPath()
 }
 
 func (c *context) MoveTo(x, y float64) {
-	win32.MoveToEx(c.hdc, int(x), int(y), nil)
+	c.path.MoveTo(x, y)
 }
 
 func (c *context) LineTo(x, y float64) {
-	win32.LineTo(c.hdc, int(x), int(y))
+	c.path.LineTo(x, y)
 }
 
 func (c *context) QuadCurveTo(cpx, cpy, x, y float64) {
-	var pos win32.POINT
-	win32.GetCurrentPositionEx(c.hdc, &pos)
-	var pts [3]win32.POINT
-	pts[0].X = int32(float64(pos.X) + (cpx-float64(pos.X))*2/3)
-	pts[0].Y = int32(float64(pos.Y) + (cpy-float64(pos.Y))*2/3)
-	pts[1].X = int32(float64(x) + (cpx-x)*2/3)
-	pts[1].Y = int32(float64(y) + (cpy-y)*2/3)
-	pts[2].X = int32(x)
-	pts[2].Y = int32(y)
-	win32.PolyBezierTo(c.hdc, pts[:])
+	c.path.QuadCurveTo(cpx, cpy, x, y)
 }
 
 func (c *context) CubicCurveTo(cp1x, cp1y, cp2x, cp2y, x, y float64) {
-	var pts [3]win32.POINT
-	pts[0].X = int32(cp1x)
-	pts[0].Y = int32(cp1y)
-	pts[1].X = int32(cp2x)
-	pts[1].Y = int32(cp2y)
-	pts[2].X = int32(x)
-	pts[2].Y = int32(y)
-	win32.PolyBezierTo(c.hdc, pts[:])
+	c.path.CubicCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)
 }
 
 func (c *context) Rect(rect geom.Rect) {
-	c.BeginPath()
-	c.MoveTo(rect.X, rect.Y)
-	c.LineTo(rect.Right(), rect.Y)
-	c.LineTo(rect.Right(), rect.Bottom())
-	c.LineTo(rect.X, rect.Bottom())
-	c.ClosePath()
+	c.path.Rect(rect)
 }
 
 func (c *context) RoundedRect(rect geom.Rect, cornerRadius float64) {
-	// RAW: Implement
+	c.path.RoundedRect(rect, cornerRadius)
 }
 
 func (c *context) Ellipse(rect geom.Rect) {
-	// RAW: Implement
+	c.path.Ellipse(rect)
 }
 
 func (c *context) Polygon(polygon poly.Polygon) {
-	for _, cont := range polygon {
-		for i, pt := range cont {
-			if i == 0 {
-				c.MoveTo(pt.X, pt.Y)
-			} else {
-				c.LineTo(pt.X, pt.Y)
-			}
-		}
-	}
-	c.ClosePath()
+	c.path.Polygon(polygon)
 }
 
 func (c *context) ClosePath() {
-	win32.CloseFigure(c.hdc)
-}
-
-func (c *context) disposeBrush() {
-	if c.brush != 0 {
-		win32.DeleteObject(win32.HGDIOBJ(c.brush))
-		c.brush = 0
-	}
-}
-
-func (c *context) disposePen() {
-	if c.pen != 0 {
-		win32.DeleteObject(win32.HGDIOBJ(c.pen))
-		c.pen = 0
-	}
+	c.path.ClosePath()
 }
 
 func (c *context) Dispose() {
-	c.disposeBrush()
-	c.disposePen()
-}
-
-func fromColorToWin32ColorRef(c Color) win32.COLORREF {
-	// RAW: Nuke alpha channel... which isn't acceptable
-	return win32.COLORREF(c >> 8)
+	c.renderTarget.PopAxisAlignedClip()
+	c.path.BeginPath()
+	if t1, t2 := c.renderTarget.EndDraw(); t1 !=  0 || t2 != 0{
+		// RAW: throw away the render target so it gets regenerated next time
+	}
 }

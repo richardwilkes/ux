@@ -14,16 +14,23 @@ import (
 	"unsafe"
 
 	"github.com/richardwilkes/toolbox/errs"
+	"github.com/richardwilkes/toolbox/log/jot"
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/ux/clipboard/datatypes"
 	"github.com/richardwilkes/ux/draw"
 	"github.com/richardwilkes/ux/globals"
 	"github.com/richardwilkes/win32"
+	"github.com/richardwilkes/win32/d2d"
 )
 
 const windowClassName = "wndClass"
 
 type OSWindow = win32.HWND
+
+type wndInfo struct {
+	wnd          *Window
+	renderTarget *d2d.HWNDRenderTarget
+}
 
 var (
 	windowClass win32.ATOM
@@ -33,14 +40,15 @@ var (
 	// MenuValidationCallback is exposed as an implementation side-effect and
 	// is not intended for client use.
 	MenuValidationCallback func(hmenu win32.HMENU)
-	nativeWindowMap        = make(map[win32.HWND]*Window)
+	nativeWindowMap        = make(map[win32.HWND]*wndInfo)
+	d2dFactory             *d2d.Factory
 )
 
 func osKeyWindow() *Window {
 	wnd := win32.GetForegroundWindow()
 	if wnd != 0 {
-		if w, ok := nativeWindowMap[wnd]; ok && w.IsValid() {
-			return w
+		if wi, ok := nativeWindowMap[wnd]; ok && wi.wnd.IsValid() {
+			return wi.wnd
 		}
 	}
 	return nil
@@ -50,7 +58,7 @@ func osAppWindowsToFront() {
 	list := make([]*Window, 0)
 	win32.EnumWindows(func(wnd win32.HWND, data win32.LPARAM) win32.BOOL {
 		if one, ok := nativeWindowMap[wnd]; ok {
-			list = append(list, one)
+			list = append(list, one.wnd)
 		}
 		return 1
 	}, 0)
@@ -104,7 +112,7 @@ func (w *Window) osStopModal(code int) {
 }
 
 func (w *Window) osAddNativeWindow() {
-	nativeWindowMap[w.wnd] = w
+	nativeWindowMap[w.wnd] = &wndInfo{wnd: w}
 }
 
 func (w *Window) osRemoveNativeWindow() {
@@ -112,6 +120,7 @@ func (w *Window) osRemoveNativeWindow() {
 }
 
 func (w *Window) osDispose() {
+	// RAW: Dispose of any resources, such as d2d
 	win32.DestroyWindow(w.wnd)
 }
 
@@ -187,9 +196,14 @@ func RegisterWindowClass() {
 	wcx.Size = uint32(unsafe.Sizeof(wcx)) //nolint:gosec
 	var err error
 	if wcx.ClassName, err = syscall.UTF16PtrFromString(windowClassName); err != nil {
+		jot.Error(errs.Wrap(err))
 		return
 	}
 	windowClass = win32.RegisterClassEx(&wcx)
+
+	if d2dFactory = d2d.CreateFactory(false, d2d.DebugLevelNone); d2dFactory == nil {
+		jot.Fatal(1, errs.New("unable to create Direct2D factory"))
+	}
 }
 
 func wndProc(wnd win32.HWND, msg uint32, wParam win32.WPARAM, lParam win32.LPARAM) win32.LRESULT {
@@ -200,28 +214,47 @@ func wndProc(wnd win32.HWND, msg uint32, wParam win32.WPARAM, lParam win32.LPARA
 		}
 		return 0
 	case win32.WM_WINDOWPOSCHANGED:
-		if w, ok := nativeWindowMap[wnd]; ok && w.IsValid() {
+		if wi, ok := nativeWindowMap[wnd]; ok && wi.wnd.IsValid() {
 			wp := (*win32.WINDOWPOS)(unsafe.Pointer(lParam))
 			if wp.Flags&win32.SWP_NOSIZE == 0 {
-				w.ValidateLayout()
+				wi.wnd.ValidateLayout()
 			}
 		}
 		return 0
 	case win32.WM_PAINT:
-		if w, ok := nativeWindowMap[wnd]; ok && w.IsValid() {
-			var ps win32.PAINTSTRUCT
-			hdc := win32.BeginPaint(wnd, &ps)
-			win32.SetGraphicsMode(hdc, win32.GM_ADVANCED)
-			dirty := fromWin32RectToRect(ps.RcPaint)
-			gc := draw.NewContextForOSContext(hdc)
-			w.Draw(gc, dirty, false)
+		if wi, ok := nativeWindowMap[wnd]; ok && wi.wnd.IsValid() {
+			bounds := wi.wnd.ContentRect()
+			bounds.X = 0
+			bounds.Y = 0
+			if wi.renderTarget == nil {
+				if wi.renderTarget = d2dFactory.CreateHwndRenderTarget(&d2d.RenderTargetProperties{}, &d2d.HWNDRenderTargetProperties{
+					HWND: wnd,
+					PixelSize: d2d.SizeU{
+						Width:  uint32(bounds.Width),
+						Height: uint32(bounds.Height),
+					},
+				}); wi.renderTarget == nil {
+					jot.Error(errs.New("unable to create render target"))
+					return 0
+				}
+			} else {
+				size := wi.renderTarget.Size()
+				if size.Width != float32(bounds.Width) || size.Height != float32(bounds.Width) {
+					wi.renderTarget.Resize(d2d.SizeU{
+						Width:  uint32(bounds.Width),
+						Height: uint32(bounds.Height),
+					})
+				}
+			}
+			gc := draw.NewContextForOSContext(wi.renderTarget)
+			wi.wnd.Draw(gc, bounds, false)
 			gc.Dispose()
-			win32.EndPaint(wnd, &ps)
 		}
+		win32.ValidateRect(wnd, nil)
 		return 0
 	case win32.WM_CLOSE:
-		if w, ok := nativeWindowMap[wnd]; ok {
-			w.AttemptClose()
+		if wi, ok := nativeWindowMap[wnd]; ok {
+			wi.wnd.AttemptClose()
 		} else {
 			win32.DestroyWindow(wnd)
 		}
@@ -233,18 +266,18 @@ func wndProc(wnd win32.HWND, msg uint32, wParam win32.WPARAM, lParam win32.LPARA
 		win32.PostQuitMessage(0)
 		return 0
 	case win32.WM_ACTIVATE:
-		if w, ok := nativeWindowMap[wnd]; ok {
+		if wi, ok := nativeWindowMap[wnd]; ok {
 			if wParam&(win32.WA_ACTIVE|win32.WA_CLICKACTIVE) != 0 {
-				if w.GainedFocusCallback != nil {
-					w.GainedFocusCallback()
+				if wi.wnd.GainedFocusCallback != nil {
+					wi.wnd.GainedFocusCallback()
 				}
 				if child := win32.GetWindow(wnd, win32.GW_CHILD); child != win32.NULL {
 					win32.SetFocus(child)
 				}
 				return 0
 			}
-			if w.LostFocusCallback != nil {
-				w.LostFocusCallback()
+			if wi.wnd.LostFocusCallback != nil {
+				wi.wnd.LostFocusCallback()
 			}
 		}
 	case win32.WM_INITMENUPOPUP:
