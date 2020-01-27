@@ -7,6 +7,6 @@ require (
 	github.com/BurntSushi/xgbutil v0.0.0-20190907113008-ad855c713046
 	github.com/richardwilkes/macos v0.0.0-20200117232136-c4e92bb9e563
 	github.com/richardwilkes/toolbox v1.24.0
-	github.com/richardwilkes/win32 v0.0.0-20200126171412-242fd41640ee
+	github.com/richardwilkes/win32 v0.0.0-20200126173402-cb9fcf3dc560
 	github.com/stretchr/testify v1.4.0
 )

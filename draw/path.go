@@ -10,6 +10,8 @@
 package draw
 
 import (
+	"math"
+
 	"github.com/richardwilkes/toolbox/xmath/geom"
 	"github.com/richardwilkes/toolbox/xmath/geom/poly"
 )
@@ -138,6 +140,172 @@ func (p *Path) ClosePath() {
 func (p *Path) SendPath(pather Pather) {
 	for _, n := range p.nodes {
 		n.SendPath(pather)
+	}
+}
+
+// Bounds returns the bounding rectangle for this path.
+func (p *Path) Bounds() geom.Rect {
+	x1 := -math.MaxFloat64 / 2
+	y1 := x1
+	x2 := math.MaxFloat64 / 2
+	y2 := x2
+	lastX := x1
+	lastY := y1
+	for _, n := range p.nodes {
+		switch t := n.(type) {
+		case *moveToPathNode:
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.x, t.y)
+			lastX = t.x
+			lastY = t.y
+		case *lineToPathNode:
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.x, t.y)
+			lastX = t.x
+			lastY = t.y
+		case *rectPathNode:
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.rect.X, t.rect.Y)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.rect.Right(), t.rect.Bottom())
+			lastX = t.rect.X
+			lastY = t.rect.Y
+		case *roundedRectPathNode:
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.rect.X, t.rect.Y)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.rect.Right(), t.rect.Bottom())
+			lastX = t.rect.X
+			lastY = t.rect.Y
+		case *ellipsePathNode:
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.rect.X, t.rect.Y)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, t.rect.Right(), t.rect.Bottom())
+			lastX = t.rect.X
+			lastY = t.rect.Y
+		case *polygonPathNode:
+			r := t.polygon.Bounds()
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, r.X, r.Y)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, r.Right(), r.Bottom())
+			if len(t.polygon) > 0 {
+				c := t.polygon[len(t.polygon)-1]
+				if len(c) > 0 {
+					p := c[len(c)-1]
+					lastX = p.X
+					lastY = p.Y
+				}
+			}
+		case *quadCurveToPathNode:
+			minX, minY, maxX, maxY := bezierBounds(lastX, lastY, t.cpx, t.cpy, t.cpx, t.cpy, t.x, t.y)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, minX, minY)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, maxX, maxY)
+			lastX = t.x
+			lastY = t.y
+		case *cubicCurveToPathNode:
+			minX, minY, maxX, maxY := bezierBounds(lastX, lastY, t.cp1x, t.cp1y, t.cp2x, t.cp2y, t.x, t.y)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, minX, minY)
+			adjustBoundsForPoint(&x1, &y1, &x2, &y2, maxX, maxY)
+			lastX = t.x
+			lastY = t.y
+		default:
+		}
+	}
+	return geom.Rect{
+		Point: geom.Point{
+			X: x1,
+			Y: y1,
+		},
+		Size: geom.Size{
+			Width:  x2 - x1,
+			Height: y2 - y1,
+		},
+	}
+}
+
+const zeroTolerance = 1e-12
+
+func bezierBounds(sx, sy, cp1x, cp1y, cp2x, cp2y, ex, ey float64) (minX, minY, maxX, maxY float64) {
+	tvalues := make([]float64, 0, 4)
+	for i := 0; i < 2; i++ {
+		var a, b, c float64
+		if i == 0 {
+			b = 6*sx - 12*cp1x + 6*cp2x
+			a = -3*sx + 9*cp1x - 9*cp2x + 3*ex
+			c = 3*cp1x - 3*sx
+		} else {
+			b = 6*sy - 12*cp1y + 6*cp2y
+			a = -3*sy + 9*cp1y - 9*cp2y + 3*ey
+			c = 3*cp1y - 3*sy
+		}
+		if math.Abs(a) < zeroTolerance {
+			if math.Abs(b) < zeroTolerance {
+				continue
+			}
+			t := -c / b
+			if t > 0 && t < 1 {
+				tvalues = append(tvalues, t)
+			}
+			continue
+		}
+		b2ac := b*b - 4*c*a
+		if b2ac < 0 {
+			if math.Abs(b2ac) < zeroTolerance {
+				t := -b / (2 * a)
+				if t > 0 && t < 1 {
+					tvalues = append(tvalues, t)
+				}
+			}
+			continue
+		}
+		sqrtb2ac := math.Sqrt(b2ac)
+		t := (-b + sqrtb2ac) / (2 * a)
+		if t > 0 && t < 1 {
+			tvalues = append(tvalues, t)
+		}
+		t = (-b - sqrtb2ac) / (2 * a)
+		if t > 0 && t < 1 {
+			tvalues = append(tvalues, t)
+		}
+	}
+	xvalues := make([]float64, len(tvalues))
+	yvalues := make([]float64, len(tvalues))
+	for i, t := range tvalues {
+		mt := 1 - t
+		mt2 := mt * mt
+		mt3 := mt2 * mt
+		t2 := t * t
+		t3 := t2 * t
+		xvalues[i] = (mt3 * sx) + (3 * mt2 * t * cp1x) + (3 * mt * t2 * cp2x) + (t3 * ex)
+		yvalues[i] = (mt3 * sy) + (3 * mt2 * t * cp1y) + (3 * mt * t2 * cp2y) + (t3 * ey)
+	}
+	minX = math.Min(sx, ex)
+	maxX = math.Max(sx, ex)
+	for _, x := range xvalues {
+		if minX > x {
+			minX = x
+		}
+		if maxX < x {
+			maxX = x
+		}
+	}
+	minY = math.Min(sy, ey)
+	maxY = math.Max(sy, ey)
+	for _, y := range yvalues {
+		if minY > y {
+			minY = y
+		}
+		if maxY < y {
+			maxY = y
+		}
+	}
+	return
+}
+
+func adjustBoundsForPoint(x1, y1, x2, y2 *float64, x, y float64) {
+	if *x1 > x {
+		*x1 = x
+	}
+	if *x2 < x {
+		*x2 = x
+	}
+	if *y1 > y {
+		*y1 = y
+	}
+	if *y2 < y {
+		*y2 = y
 	}
 }
 

@@ -30,12 +30,6 @@ import (
 // OSContext is the platform-specific drawing context on Windows.
 type OSContext = *d2d.HWNDRenderTarget
 
-type contextState struct {
-	state       d2d.DrawingStateBlock
-	strokeStyle *d2d.StrokeStyle
-	strokeWidth float32
-}
-
 type context struct {
 	renderTarget OSContext
 	stack        []*contextState
@@ -45,20 +39,9 @@ type context struct {
 func osNewContextForOSContext(gc OSContext) Context {
 	c := &context{
 		renderTarget: gc,
-		stack: []*contextState{
-			{
-				strokeWidth: 1,
-			},
-		},
+		stack:        []*contextState{{strokeWidth: 1}},
 	}
 	c.renderTarget.BeginDraw()
-	c.osiSetMatrix(xmath.NewIdentityMatrix2D())
-	c.renderTarget.PushAxisAlignedClip(d2d.Rect{
-		Left:   -math.MaxFloat32,
-		Top:    -math.MaxFloat32,
-		Right:  math.MaxFloat32,
-		Bottom: math.MaxFloat32,
-	}, false)
 	return c
 }
 
@@ -72,18 +55,19 @@ func (c *context) current() *contextState {
 
 func (c *context) Save() {
 	current := c.current()
-	var cs contextState
-	c.renderTarget.SaveDrawingState(&cs.state)
-	cs.strokeWidth = current.strokeWidth
-	c.stack[len(c.stack)-1] = &cs
-	c.stack = append(c.stack, current)
+	current.state = c.renderTarget.SaveDrawingState()
+	c.stack = append(c.stack, current.copy(c))
 }
 
 func (c *context) Restore() {
 	if len(c.stack) > 0 {
+		c.current().dispose()
 		c.stack[len(c.stack)-1] = nil
 		c.stack = c.stack[:len(c.stack)-1]
-		c.renderTarget.RestoreDrawingState(&c.current().state)
+		current := c.current()
+		c.renderTarget.RestoreDrawingState(current.state)
+		c.path = *current.clip.Clone()
+		c.pushClip(current.clipWindingFillMode)
 	}
 }
 
@@ -158,58 +142,89 @@ func (c *context) Stroke(ink Ink) {
 }
 
 func (c *context) GetClipRect() geom.Rect {
-	return geom.Rect{} // RAW: Implement
+	current := c.current()
+	switch len(current.clip.nodes) {
+	case 0:
+		return geom.Rect{
+			Point: geom.Point{
+				X: -math.MaxFloat32,
+				Y: -math.MaxFloat32,
+			},
+			Size: geom.Size{
+				Width:  math.MaxFloat32,
+				Height: math.MaxFloat32,
+			},
+		}
+	case 1:
+		if rpn, ok := current.clip.nodes[0].(*rectPathNode); ok {
+			return rpn.rect
+		}
+		fallthrough
+	default:
+		return current.clip.Bounds()
+	}
 }
 
 func (c *context) Clip() {
+	c.pushClip(true)
+}
+
+func (c *context) ClipEvenOdd() {
+	c.pushClip(false)
+}
+
+func (c *context) pushClip(windingFillMode bool) {
+	c.popClip()
+	current := c.current()
+	current.clipWindingFillMode = windingFillMode
+	current.clip.BeginPath()
 	defer c.path.BeginPath()
 	switch len(c.path.nodes) {
 	case 0:
+		jot.Info("clip: empty")
+		current.clip.Rect(geom.Rect{})
+		c.renderTarget.PushAxisAlignedClip(d2d.Rect{}, false)
 		return
 	case 1:
 		if rpn, ok := c.path.nodes[0].(*rectPathNode); ok {
 			jot.Info("clip: ", rpn.rect)
-			// c.renderTarget.PushAxisAlignedClip(&d2d.Rect{
-			// 	Left:   float32(rpn.rect.X),
-			// 	Top:    float32(rpn.rect.Y),
-			// 	Right:  float32(rpn.rect.Right()),
-			// 	Bottom: float32(rpn.rect.Bottom()),
-			// }, false)
+			current.clip.Rect(rpn.rect)
+			c.renderTarget.PushAxisAlignedClip(d2d.Rect{
+				Left:   float32(rpn.rect.X),
+				Top:    float32(rpn.rect.Y),
+				Right:  float32(rpn.rect.Right()),
+				Bottom: float32(rpn.rect.Bottom()),
+			}, false)
 			return
 		}
 		fallthrough
 	default:
-		p, err := newWinPath(c, true, false)
+		jot.Info("clip: geometry")
+		p, err := newWinPath(c, windingFillMode, false)
 		if err != nil {
 			jot.Error(err)
 			return
 		}
 		c.path.SendPath(p)
-		// p.gc.renderTarget.PushLayer(&d2d.LayerParameters{
-		// 	ContentBounds: d2d.Rect{
-		// 		Left:   -math.MaxFloat32,
-		// 		Top:    -math.MaxFloat32,
-		// 		Right:  math.MaxFloat32,
-		// 		Bottom: math.MaxFloat32,
-		// 	},
-		// 	GeometricMask: p.geometry(),
-		// }, nil)
+		c.path.SendPath(&current.clip)
+		p.gc.renderTarget.PushLayer(&d2d.LayerParameters{GeometricMask: p.geometry(),}, nil)
 		p.dispose()
 	}
 }
 
-func (c *context) ClipEvenOdd() {
-	p, err := newWinPath(c, false, false)
-	if err != nil {
-		jot.Error(err)
-		return
+func (c *context) popClip() {
+	current := c.current()
+	switch len(current.clip.nodes) {
+	case 0:
+	case 1:
+		if _, ok := current.clip.nodes[0].(*rectPathNode); ok {
+			c.renderTarget.PopAxisAlignedClip()
+			return
+		}
+		fallthrough
+	default:
+		c.renderTarget.PopLayer()
 	}
-	c.path.SendPath(p)
-	p.gc.renderTarget.PushLayer(&d2d.LayerParameters{
-		GeometricMask: p.geometry(),
-	}, nil)
-	p.dispose()
-	c.path.BeginPath()
 }
 
 func (c *context) DrawImage(img *Image, where geom.Point) {
@@ -269,7 +284,10 @@ func (c *context) ClosePath() {
 func (c *context) Dispose() {
 	c.renderTarget.PopAxisAlignedClip()
 	c.path.BeginPath()
-	if t1, t2 := c.renderTarget.EndDraw(); t1 !=  0 || t2 != 0{
+	for _, one := range c.stack {
+		one.dispose()
+	}
+	if t1, t2 := c.renderTarget.EndDraw(); t1 != 0 || t2 != 0 {
 		// RAW: throw away the render target so it gets regenerated next time
 	}
 }
