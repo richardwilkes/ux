@@ -88,6 +88,6 @@ func Initialize() {
 
 // NewContextForOSContext creates a new graphics context for the given OS
 // graphic context.
-func NewContextForOSContext(gc OSContext) Context {
+func NewContextForOSContext(gc *OSContext) Context {
 	return osNewContextForOSContext(gc)
 }

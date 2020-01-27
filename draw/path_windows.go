@@ -43,7 +43,7 @@ func newWinPath(gc *context, windingFillMode, isLine bool) (*winPath, error) {
 }
 
 func (p *winPath) setup() error {
-	if p.pathGeometry = p.gc.renderTarget.Factory().CreatePathGeometry(); p.pathGeometry == nil {
+	if p.pathGeometry = p.gc.OSContext().Factory().CreatePathGeometry(); p.pathGeometry == nil {
 		return errs.New("unable to create path geometry")
 	}
 	if p.sink = p.pathGeometry.Open(); p.sink == nil {
@@ -115,7 +115,7 @@ func (p *winPath) CubicCurveTo(cp1x, cp1y, cp2x, cp2y, x, y float64) {
 }
 
 func (p *winPath) Rect(rect geom.Rect) {
-	rg := p.gc.renderTarget.Factory().CreateRectangleGeometry(d2d.Rect{
+	rg := p.gc.OSContext().Factory().CreateRectangleGeometry(d2d.Rect{
 		Left:   float32(rect.X),
 		Top:    float32(rect.Y),
 		Right:  float32(rect.Right()),
@@ -129,7 +129,7 @@ func (p *winPath) Rect(rect geom.Rect) {
 }
 
 func (p *winPath) RoundedRect(rect geom.Rect, cornerRadius float64) {
-	rg := p.gc.renderTarget.Factory().CreateRoundedRectangleGeometry(d2d.RoundedRect{
+	rg := p.gc.OSContext().Factory().CreateRoundedRectangleGeometry(d2d.RoundedRect{
 		Rect: d2d.Rect{
 			Left:   float32(rect.X),
 			Top:    float32(rect.Y),
@@ -147,7 +147,7 @@ func (p *winPath) RoundedRect(rect geom.Rect, cornerRadius float64) {
 }
 
 func (p *winPath) Ellipse(rect geom.Rect) {
-	eg := p.gc.renderTarget.Factory().CreateEllipseGeometry(d2d.Ellipse{
+	eg := p.gc.OSContext().Factory().CreateEllipseGeometry(d2d.Ellipse{
 		Point: d2d.Point{
 			X: float32(rect.CenterX()),
 			Y: float32(rect.CenterY()),
@@ -214,7 +214,7 @@ func (p *winPath) geometry() *d2d.Geometry {
 	if len(p.result) == 1 {
 		return p.result[0]
 	}
-	group := p.gc.renderTarget.Factory().CreateGeometryGroup(p.windingFillMode, p.result)
+	group := p.gc.OSContext().Factory().CreateGeometryGroup(p.windingFillMode, p.result)
 	if group == nil {
 		jot.Error(errs.New("unable to create geometry group"))
 		return nil

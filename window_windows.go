@@ -178,7 +178,11 @@ func (w *Window) osMarkRectForRedraw(rect geom.Rect) {
 }
 
 func (w *Window) osFlushDrawing() {
-	win32.GdiFlush()
+	if w.IsValid() {
+		if wi, ok := nativeWindowMap[w.OSWindow()]; ok && wi.renderTarget != nil {
+			wi.renderTarget.Flush()
+		}
+	}
 }
 
 func (w *Window) osRegisterDragTypes(dt ...datatypes.DataType) {
@@ -246,7 +250,7 @@ func wndProc(wnd win32.HWND, msg uint32, wParam win32.WPARAM, lParam win32.LPARA
 					})
 				}
 			}
-			gc := draw.NewContextForOSContext(wi.renderTarget)
+			gc := draw.NewContextForOSContext(&wi.renderTarget)
 			wi.wnd.Draw(gc, bounds, false)
 			gc.Dispose()
 		}

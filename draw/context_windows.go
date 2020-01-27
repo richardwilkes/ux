@@ -31,18 +31,20 @@ import (
 type OSContext = *d2d.HWNDRenderTarget
 
 type context struct {
-	renderTarget OSContext
+	renderTarget *OSContext
 	stack        []*contextState
 	path         Path
 }
 
-func osNewContextForOSContext(gc OSContext) Context {
+func osNewContextForOSContext(gc *OSContext) Context {
 	c := &context{
 		renderTarget: gc,
 		stack:        []*contextState{{strokeWidth: 1}},
 	}
-	c.renderTarget.BeginDraw()
-	c.renderTarget.PushAxisAlignedClip(d2d.Rect{
+	rt := c.OSContext()
+	rt.BeginDraw()
+	c.osiSetMatrix(xmath.NewIdentityMatrix2D())
+	rt.PushAxisAlignedClip(d2d.Rect{
 		Left:   -math.MaxFloat32 / 2,
 		Top:    -math.MaxFloat32 / 2,
 		Right:  math.MaxFloat32,
@@ -52,7 +54,7 @@ func osNewContextForOSContext(gc OSContext) Context {
 }
 
 func (c *context) OSContext() OSContext {
-	return c.renderTarget
+	return *c.renderTarget
 }
 
 func (c *context) current() *contextState {
@@ -61,7 +63,7 @@ func (c *context) current() *contextState {
 
 func (c *context) Save() {
 	current := c.current()
-	current.state = c.renderTarget.SaveDrawingState()
+	current.state = c.OSContext().SaveDrawingState()
 	c.stack = append(c.stack, current.copy(c))
 }
 
@@ -71,7 +73,7 @@ func (c *context) Restore() {
 		c.stack[len(c.stack)-1] = nil
 		c.stack = c.stack[:len(c.stack)-1]
 		current := c.current()
-		c.renderTarget.RestoreDrawingState(current.state)
+		c.OSContext().RestoreDrawingState(current.state)
 		current.state = nil
 		c.path = *current.clip.Clone()
 		c.pushClip(current.clipWindingFillMode)
@@ -123,7 +125,7 @@ func (c *context) Rotate(angleInRadians float64) {
 }
 
 func (c *context) osiSetMatrix(matrix *xmath.Matrix2D) {
-	c.renderTarget.SetTransform(&d2d.Matrix3x2{
+	c.OSContext().SetTransform(&d2d.Matrix3x2{
 		A11: float32(matrix.XX),
 		A12: float32(matrix.YX),
 		A21: float32(matrix.XY),
@@ -189,12 +191,12 @@ func (c *context) pushClip(windingFillMode bool) {
 	switch len(c.path.nodes) {
 	case 0:
 		current.clip.Rect(geom.Rect{})
-		c.renderTarget.PushAxisAlignedClip(d2d.Rect{}, false)
+		c.OSContext().PushAxisAlignedClip(d2d.Rect{}, false)
 		return
 	case 1:
 		if rpn, ok := c.path.nodes[0].(*rectPathNode); ok {
 			current.clip.Rect(rpn.rect)
-			c.renderTarget.PushAxisAlignedClip(d2d.Rect{
+			c.OSContext().PushAxisAlignedClip(d2d.Rect{
 				Left:   float32(rpn.rect.X),
 				Top:    float32(rpn.rect.Y),
 				Right:  float32(rpn.rect.Right()),
@@ -211,7 +213,7 @@ func (c *context) pushClip(windingFillMode bool) {
 		}
 		c.path.SendPath(p)
 		c.path.SendPath(&current.clip)
-		p.gc.renderTarget.PushLayer(&d2d.LayerParameters{GeometricMask: p.geometry(),}, nil)
+		p.gc.OSContext().PushLayer(&d2d.LayerParameters{GeometricMask: p.geometry(),}, nil)
 		p.dispose()
 	}
 }
@@ -220,15 +222,15 @@ func (c *context) popClip() {
 	current := c.current()
 	switch len(current.clip.nodes) {
 	case 0:
-		c.renderTarget.PopAxisAlignedClip()
+		c.OSContext().PopAxisAlignedClip()
 	case 1:
 		if _, ok := current.clip.nodes[0].(*rectPathNode); ok {
-			c.renderTarget.PopAxisAlignedClip()
+			c.OSContext().PopAxisAlignedClip()
 			return
 		}
 		fallthrough
 	default:
-		c.renderTarget.PopLayer()
+		c.OSContext().PopLayer()
 	}
 }
 
@@ -292,7 +294,8 @@ func (c *context) Dispose() {
 	for _, one := range c.stack {
 		one.dispose()
 	}
-	if t1, t2 := c.renderTarget.EndDraw(); t1 != 0 || t2 != 0 {
-		// RAW: throw away the render target so it gets regenerated next time
+	if t1, t2 := c.OSContext().EndDraw(); t1 != 0 || t2 != 0 {
+		c.OSContext().Release()
+		*c.renderTarget = nil
 	}
 }

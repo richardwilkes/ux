@@ -42,13 +42,13 @@ func (c Color) osiFill(gc Context, windingFillMode bool) {
 			return
 		}
 		osc.path.SendPath(p)
-		p.gc.renderTarget.FillGeometry(p.geometry(), &brush.Brush, nil)
+		p.gc.OSContext().FillGeometry(p.geometry(), &brush.Brush, nil)
 		p.dispose()
 	}
 }
 
 func (c Color) osiNewBrush(gc *context) *d2d.SolidColorBrush {
-	return gc.renderTarget.CreateSolidColorBrush(d2d.Color{
+	return gc.OSContext().CreateSolidColorBrush(d2d.Color{
 		R: float32(c.RedIntensity()),
 		G: float32(c.GreenIntensity()),
 		B: float32(c.BlueIntensity()),
@@ -72,7 +72,7 @@ func (c Color) osStroke(gc Context) {
 		}
 		osc.path.SendPath(p)
 		current := p.gc.current()
-		p.gc.renderTarget.DrawGeometry(p.geometry(), &brush.Brush, current.strokeWidth, current.strokeStyle)
+		p.gc.OSContext().DrawGeometry(p.geometry(), &brush.Brush, current.strokeWidth, current.strokeStyle)
 		p.dispose()
 	}
 }
