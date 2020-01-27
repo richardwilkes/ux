@@ -29,8 +29,8 @@ type context struct {
 	gc OSContext
 }
 
-func osNewContextForOSContext(gc OSContext) Context {
-	return &context{gc: gc}
+func osNewContextForOSContext(gc *OSContext) Context {
+	return &context{gc: *gc}
 }
 
 func (c *context) OSContext() OSContext {

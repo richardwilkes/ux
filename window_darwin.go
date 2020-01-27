@@ -332,7 +332,7 @@ func (d *viewDelegate) ViewDraw(view *ns.View, gc cg.Context, x, y, width, heigh
 	if wnd := view.Window(); wnd != nil {
 		if w, ok := nativeWindowMap[wnd.Native()]; ok && w.wnd != nil {
 			draw.UpdateSystemColors()
-			w.Draw(draw.NewContextForOSContext(gc), geom.Rect{
+			w.Draw(draw.NewContextForOSContext(&gc), geom.Rect{
 				Point: geom.Point{X: x, Y: y},
 				Size:  geom.Size{Width: width, Height: height},
 			}, inLiveResize)

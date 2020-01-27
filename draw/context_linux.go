@@ -23,7 +23,7 @@ type OSContext = int // RAW: Implement
 type context struct {
 }
 
-func osNewContextForOSContext(gc OSContext) Context {
+func osNewContextForOSContext(gc *OSContext) Context {
 	return &context{} // RAW: Implement
 }
 
