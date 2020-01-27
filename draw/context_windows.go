@@ -42,6 +42,12 @@ func osNewContextForOSContext(gc OSContext) Context {
 		stack:        []*contextState{{strokeWidth: 1}},
 	}
 	c.renderTarget.BeginDraw()
+	c.renderTarget.PushAxisAlignedClip(d2d.Rect{
+		Left:   -math.MaxFloat32 / 2,
+		Top:    -math.MaxFloat32 / 2,
+		Right:  math.MaxFloat32,
+		Bottom: math.MaxFloat32,
+	}, false)
 	return c
 }
 
@@ -66,6 +72,7 @@ func (c *context) Restore() {
 		c.stack = c.stack[:len(c.stack)-1]
 		current := c.current()
 		c.renderTarget.RestoreDrawingState(current.state)
+		current.state = nil
 		c.path = *current.clip.Clone()
 		c.pushClip(current.clipWindingFillMode)
 	}
@@ -181,13 +188,11 @@ func (c *context) pushClip(windingFillMode bool) {
 	defer c.path.BeginPath()
 	switch len(c.path.nodes) {
 	case 0:
-		jot.Info("clip: empty")
 		current.clip.Rect(geom.Rect{})
 		c.renderTarget.PushAxisAlignedClip(d2d.Rect{}, false)
 		return
 	case 1:
 		if rpn, ok := c.path.nodes[0].(*rectPathNode); ok {
-			jot.Info("clip: ", rpn.rect)
 			current.clip.Rect(rpn.rect)
 			c.renderTarget.PushAxisAlignedClip(d2d.Rect{
 				Left:   float32(rpn.rect.X),
@@ -199,7 +204,6 @@ func (c *context) pushClip(windingFillMode bool) {
 		}
 		fallthrough
 	default:
-		jot.Info("clip: geometry")
 		p, err := newWinPath(c, windingFillMode, false)
 		if err != nil {
 			jot.Error(err)
@@ -216,6 +220,7 @@ func (c *context) popClip() {
 	current := c.current()
 	switch len(current.clip.nodes) {
 	case 0:
+		c.renderTarget.PopAxisAlignedClip()
 	case 1:
 		if _, ok := current.clip.nodes[0].(*rectPathNode); ok {
 			c.renderTarget.PopAxisAlignedClip()
@@ -282,7 +287,7 @@ func (c *context) ClosePath() {
 }
 
 func (c *context) Dispose() {
-	c.renderTarget.PopAxisAlignedClip()
+	c.popClip()
 	c.path.BeginPath()
 	for _, one := range c.stack {
 		one.dispose()
